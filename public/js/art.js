@@ -1,5 +1,6 @@
-// 原創線稿牌面：全部用程式畫，不依賴外部圖檔。畫布 120 × 200。
-// 樣式類別：hair 細線、tint 元素色線、soft 元素色淡底、fill 元素色實心、accent 元素色粗線。
+// 原創牌面：全部用程式畫，不依賴外部圖檔。畫布 120 × 200，場景窗 x 14–106、y 30–154。
+// 樣式類別：hair 細線、tint 元素色線、soft 元素色淡底、deep 元素色濃底、
+// skin 紙色實心、fill 元素色實心、accent 元素色粗線、limb 手臂。
 
 const ROMAN = ['0', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX', 'XXI'];
 
@@ -15,7 +16,6 @@ function star(cx, cy, r, points = 5, inner = 0.42) {
   return `<polygon points="${pts.join(' ')}"/>`;
 }
 
-// 放射線；from/to 以度為單位，預設一整圈
 function rays(cx, cy, r1, r2, n, from = 0, to = 360) {
   let out = '';
   const full = to - from >= 360;
@@ -27,7 +27,6 @@ function rays(cx, cy, r1, r2, n, from = 0, to = 360) {
   return out;
 }
 
-// 沿橢圓排一圈葉片
 function leafRing(cx, cy, rx, ry, n) {
   let out = '';
   for (let i = 0; i < n; i += 1) {
@@ -42,230 +41,436 @@ function leafRing(cx, cy, rx, ry, n) {
 
 const dots = (list, r = 1.6) => list.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('');
 const drop = (x, y) => `<path d="M${x} ${y}c2.2 3.4 2.2 5.6 0 6.6-2.2-1-2.2-3.2 0-6.6z"/>`;
-const waves = (y, x0 = 24, n = 4) => `<path d="M${x0} ${y}q4.5-4 9 0${'t9 0'.repeat(n * 2 - 1)}"/>`;
-const lemniscate = (cx, cy) => `<path d="M${cx} ${cy}c-4-5-12-5-12 0s8 5 12 0c4-5 12-5 12 0s-8 5-12 0z"/>`;
+const waves = (y, x0 = 14, n = 5) => `<path d="M${x0} ${y}q4.6-4 9.2 0${'t9.2 0'.repeat(n * 2 - 1)}"/>`;
+const lemniscate = (cx, cy, s = 1) => `<path d="M${cx} ${cy}c${-4 * s}${-5 * s}${-12 * s}${-5 * s}${-12 * s} 0s${8 * s} ${5 * s} ${12 * s} 0c${4 * s}${-5 * s} ${12 * s}${-5 * s} ${12 * s} 0s${-8 * s} ${5 * s}${-12 * s} 0z"/>`;
 
-// 22 張大牌的圖徽，畫在拱窗裡：x 24–96，y 46–148
-const EMBLEMS = [
-  // 0 愚者：崖邊、行囊、朝陽
-  () => `<circle cx="80" cy="64" r="7" class="soft"/><g class="hair tint">${rays(80, 64, 10, 14, 12)}</g>`
-    + `<path d="M24 148v-22l22-6 12 8 6 14-4 6"/><path d="M29 132l9-2M31 140l13-3M48 128l6 4" class="hair"/>`
-    + `<path d="M70 148l9-16 6 8 6-10 5 8" class="hair"/>`
-    + `<path d="M40 114l30-36"/><path d="M66 74c6-6 15 0 11 8-4 6-13 4-11-8z" class="soft"/>`
-    + `<path d="M36 118v-9"/><g class="fill">${dots([[36, 106]], 3)}</g>`
-    + `<path d="M40 64q4-4 8 0M52 56q3-3 6 0" class="hair"/>`,
-  // 1 魔術師：無限、高舉的杖、桌上四樣聖物
-  () => `${lemniscate(60, 56)}<path d="M60 64v40"/><g class="fill">${dots([[60, 64], [60, 104]], 2)}</g>`
-    + `<g class="hair tint">${rays(60, 64, 5, 9, 7, 200, 340)}</g>`
-    + `<path d="M28 116h64M28 120h64M32 120v26M88 120v26"/>`
-    + `<path d="M36 102h8c0 5-2 7-4 7s-4-2-4-7zM40 109v4M37 114h6"/>`
-    + `<circle cx="54" cy="109" r="5" class="soft"/><g class="hair">${star(54, 109, 3.6)}</g>`
-    + `<path d="M66 114l12-12M68 107l5 5"/><path d="M83 114v-14"/><g class="fill">${dots([[83, 99]], 1.6)}</g>`
-    + `<path d="M36 128q24 16 48 0" class="hair"/><g class="fill">${dots([[44, 134], [60, 138], [76, 134]], 2.2)}</g>`,
-  // 2 女祭司：雙柱、帷幕、月冠與腳邊的新月
-  () => `<path d="M32 70v76M28 70h8M28 146h8M29 66h6M88 70v76M84 70h8M84 146h8M85 66h6"/>`
-    + `<path d="M36 84q24 10 48 0M36 92q24 10 48 0" class="hair"/>`
-    + `<g class="fill">${dots([[46, 100], [60, 104], [74, 100], [52, 113], [68, 113]], 2)}</g>`
-    + `<circle cx="60" cy="58" r="6" class="soft"/><path d="M50 52a7 7 0 0 0 0 12 5 5 0 0 1 0-12zM70 52a7 7 0 0 1 0 12 5 5 0 0 0 0-12z"/>`
-    + `<rect x="51" y="121" width="18" height="8" rx="3"/><path d="M55 125h10" class="hair"/>`
-    + `<path d="M46 137a14 9 0 0 0 28 0 14 5 0 0 1-28 0z" class="soft"/>`,
-  // 3 皇后：金星、星冠、麥穗與河
-  () => `<g class="fill">${[-150, -130, -110, -90, -70, -50, -30].map((d) => { const r = (d * Math.PI) / 180; return star(f(60 + 30 * Math.cos(r)), f(88 + 30 * Math.sin(r)), 2.6, 4, 0.4); }).join('')}</g>`
-    + `<circle cx="60" cy="86" r="13" class="soft"/><path d="M60 99v20M51 110h18"/>`
-    + [34, 46, 74, 86].map((x) => `<path d="M${x} 144v-18M${x} 131l-3-4M${x} 131l3-4M${x} 136l-3-4M${x} 136l3-4M${x} 126l-2-4M${x} 126l2-4"/>`).join('')
-    + `<g class="hair tint">${waves(146)}</g><g class="fill">${dots([[38, 78], [82, 78]], 2.2)}</g>`,
-  // 4 皇帝：羊角王座、王冠、寶球與權杖
-  () => `<path d="M24 146l8-20 6 10M82 136l6-12 8 22" class="hair"/>`
-    + `<path d="M38 146V76h44v70" class="soft"/><path d="M38 124h44"/>`
-    + `<path d="M38 76c-9-2-11-11-4-13 4-1 7 3 3 6M82 76c9-2 11-11 4-13-4-1-7 3-3 6"/>`
-    + `<path d="M50 76l2-11 4 7 4-9 4 9 4-7 2 11z" class="soft"/>`
-    + `<circle cx="72" cy="108" r="7" class="soft"/><path d="M72 101v-7M69 97h6"/>`
-    + `<path d="M48 146v-32M43 120h10"/><ellipse cx="48" cy="108" rx="4" ry="6"/>`,
-  // 5 教皇：三重冠、三重十字、交叉的雙鑰
-  () => `<path d="M28 62v84M92 62v84" class="hair"/>`
-    + `<path d="M50 68a10 6 0 0 1 20 0zM52 60a8 5 0 0 1 16 0zM54 53a6 4 0 0 1 12 0z" class="soft"/>`
-    + `<path d="M60 72v52M52 82h16M48 92h24M44 102h32"/>`
-    + `<path d="M46 142l20-20M74 142l-20-20M63 125l3 3M57 125l-3 3"/>`
-    + `<circle cx="44" cy="144" r="3.5" class="soft"/><circle cx="76" cy="144" r="3.5" class="soft"/>`,
-  // 6 戀人：太陽、天使的翅膀、交疊的雙環
-  () => `<circle cx="60" cy="58" r="8" class="soft"/><g class="hair tint">${rays(60, 58, 11, 16, 14)}</g>`
-    + `<path d="M60 76c-10-7-22-5-28 3 10-2 18 0 24 7M60 76c10-7 22-5 28 3-10-2-18 0-24 7"/>`
-    + `<path d="M60 98a15 15 0 0 1 0 24 15 15 0 0 1 0-24z" class="soft"/>`
-    + `<circle cx="51" cy="110" r="15"/><circle cx="69" cy="110" r="15"/>`
-    + `<path d="M26 146h68M52 146l8-13 8 13" class="hair"/><g class="fill">${dots([[30, 138], [90, 138]], 2.4)}</g><path d="M30 140v6M90 140v6" class="hair"/>`,
-  // 7 戰車：星幕華蓋、有翼日輪、雙輪與黑白新月
-  () => `<path d="M36 80q24-20 48 0z" class="soft"/><g class="fill">${star(48, 74, 2.4, 4, 0.4)}${star(60, 70, 2.8, 4, 0.4)}${star(72, 74, 2.4, 4, 0.4)}</g>`
-    + `<path d="M38 80v22M82 80v22"/><g class="fill">${star(60, 91, 5, 8, 0.45)}</g>`
-    + `<rect x="36" y="102" width="48" height="22" rx="2"/><path d="M56 113q-8-7-14 0M64 113q8-7 14 0"/><g class="fill">${dots([[60, 113]], 3.4)}</g>`
-    + `<circle cx="33" cy="135" r="9"/><g class="hair">${rays(33, 135, 0, 9, 8)}</g><circle cx="87" cy="135" r="9"/><g class="hair">${rays(87, 135, 0, 9, 8)}</g>`
-    + `<path d="M54 142a8 8 0 0 1 0-13 6 6 0 0 0 0 13z" class="fill"/><path d="M66 129a8 8 0 0 1 0 13 6 6 0 0 0 0-13z"/>`,
-  // 8 力量：無限符號、獅子與花環
-  () => `${lemniscate(60, 56)}<path d="M36 86q24-16 48 0" class="hair"/>`
-    + `<g class="tint">${rays(60, 104, 16, 23, 18)}</g><circle cx="60" cy="104" r="14" class="soft"/>`
-    + `<g class="fill">${dots([[55, 101], [65, 101]], 1.4)}</g><path d="M60 104v4M56 110q4 3 8 0M53 96l-3-4M67 96l3-4" class="hair"/>`
-    + `<path d="M30 130q30 22 60 0" class="hair"/><g class="fill">${dots([[36, 135], [48, 141], [60, 143], [72, 141], [84, 135]], 2.2)}</g>`,
-  // 9 隱士：星燈、長杖、斗篷與雪峰
-  () => `<g class="hair tint">${rays(64, 75, 12, 20, 14)}</g>`
-    + `<path d="M64 56v6M56 66l8-4 8 4v18l-8 4-8-4z"/><g class="fill">${star(64, 75, 6, 6, 0.5)}</g>`
-    + `<path d="M40 58v88"/><path d="M62 94c-11 7-16 26-18 52h36c-2-24-7-44-18-52z" class="soft"/><path d="M52 122q8 6 20 2" class="hair"/>`
-    + `<path d="M24 146l12-9 6 5M82 146l7-11 7 11" class="hair"/>`,
-  // 10 命運之輪：三重輪與四方的雲
-  () => `<circle cx="60" cy="100" r="32"/><circle cx="60" cy="100" r="24" class="soft"/><circle cx="60" cy="100" r="8"/>`
-    + `${rays(60, 100, 8, 24, 8)}<g class="fill">${dots([[60, 100]], 3)}${[0, 90, 180, 270].map((d) => { const r = (d * Math.PI) / 180; return star(f(60 + 28 * Math.cos(r)), f(100 + 28 * Math.sin(r)), 2.6, 4, 0.45); }).join('')}</g>`
-    + `<g class="hair">${dots([[79.8, 80.2], [79.8, 119.8], [40.2, 80.2], [40.2, 119.8]], 1.6)}</g>`
-    + `<path d="M56 67l4-7 4 7z" class="soft"/><path d="M26 64q5-6 10 0M84 64q5-6 10 0M26 142q5-6 10 0M84 142q5-6 10 0" class="hair"/>`,
-  // 11 正義：直立的劍、天秤與雙柱
-  () => `<path d="M28 62v84M92 62v84M28 72q32 10 64 0" class="hair"/>`
-    + `<path d="M60 52l3 6v52h-6v-52z" class="soft"/><path d="M60 60v46" class="hair"/><path d="M50 110h20M60 110v10"/><g class="fill">${dots([[60, 123]], 2.6)}</g>`
-    + `<path d="M38 78h44M38 78l-7 20M38 78l7 20M82 78l-7 20M82 78l7 20"/>`
-    + `<path d="M30 98a8 5 0 0 0 16 0zM74 98a8 5 0 0 0 16 0z" class="soft"/><path d="M48 146h24M52 140h16"/>`,
-  // 12 吊人：長著新葉的木架、倒懸的人與光環
-  () => `<path d="M30 62h60M30 66h60M34 66v14M86 66v14"/><g class="fill">${dots([[40, 57], [52, 55], [68, 55], [80, 57]], 2)}</g>`
-    + `<path d="M60 66v34M60 90l10 8-10 6"/><path d="M50 100h20l-10 22z" class="soft"/>`
-    + `<g class="hair tint">${rays(60, 130, 11, 15, 14)}</g><circle cx="60" cy="130" r="6.5" class="soft"/>`,
-  // 13 死神：鐮刀、玫瑰旗、雙塔間升起的太陽
-  () => `<path d="M46 132a14 14 0 0 1 28 0z" class="soft"/><g class="hair tint">${rays(60, 132, 17, 23, 9, 200, 340)}</g>`
-    + `<path d="M24 132h72M30 132v-22h8v22M32 110v-4h4v4M82 132v-22h8v22M84 110v-4h4v4"/><g class="hair tint">${waves(141)}</g>`
-    + `<path d="M40 56v46M40 58h24v22h-24z" class="soft"/><g class="hair">${[0, 72, 144, 216, 288].map((d) => { const r = (d * Math.PI) / 180; return `<circle cx="${f(52 + 4 * Math.cos(r))}" cy="${f(69 + 4 * Math.sin(r))}" r="3"/>`; }).join('')}</g><g class="fill">${dots([[52, 69]], 1.8)}</g>`
-    + `<path d="M80 104l-8-46"/><path d="M72 58c9-4 19 0 22 8-8-4-15-4-21-2z" class="soft"/>`,
-  // 14 節制：雙翼、胸前的三角、兩杯之間的流水
-  () => `<circle cx="60" cy="56" r="6" class="soft"/><g class="hair tint">${rays(60, 56, 8, 11, 9, 190, 350)}</g>`
-    + `<path d="M60 72c-12-10-26-8-32 2 10-2 20 2 26 10M60 72c12-10 26-8 32 2-10-2-20 2-26 10"/>`
-    + `<rect x="53" y="80" width="14" height="14"/><path d="M60 83l5 9h-10z" class="fill"/>`
-    + `<path d="M32 102h16l-3 14h-10z" class="soft"/><path d="M72 120h16l-3 14h-10z" class="soft"/>`
-    + `<path d="M46 110c10 2 18 6 28 12" class="tint" stroke-dasharray="2.5 2.5"/><path d="M46 114c10 2 16 5 26 9" class="hair tint"/>`
-    + `<g class="hair tint">${waves(146)}</g><path d="M30 144v-10M30 136l-3-4M30 136l3-4" class="hair"/>`,
-  // 15 惡魔：倒五芒星、蝠翼、鬆鬆的鎖鏈
-  () => `<path d="M48 70c-4-6-4-10 0-14M72 70c4-6 4-10 0-14"/>`
-    + `<path d="M36 78c-8-8-10-2-12 6 4-4 6-2 8 2M84 78c8-8 10-2 12 6-4-4-6-2-8 2"/>`
-    + `<circle cx="60" cy="94" r="24" class="soft"/><g transform="rotate(180 60 94)">${star(60, 94, 22)}</g>`
-    + `<rect x="44" y="124" width="32" height="8"/><path d="M60 123c-3-4 0-6 0-9 3 3 3 5 0 9z" class="fill"/>`
-    + `<path d="M48 132c-6 4-12 4-16 10M72 132c6 4 12 4 16 10" stroke-dasharray="2.5 2.5"/><circle cx="30" cy="144" r="3"/><circle cx="90" cy="144" r="3"/>`,
-  // 16 高塔：閃電、墜落的王冠與火星
-  () => `<path d="M30 148l8-14h44l8 14"/><path d="M46 134V78h28v56z" class="soft"/>`
-    + `<path d="M42 78h36M46 78v-7h6v7M57 78v-7h6v7M68 78v-7h6v7"/>`
-    + `<path d="M57 92h6v10h-6zM50 112h5v8h-5zM65 112h5v8h-5z"/><path d="M46 88h8M66 104h8M46 126h10" class="hair"/>`
-    + `<path d="M36 64l2-9 4 6 4-8 4 8 4-6 2 9z" transform="rotate(-22 46 60)"/>`
-    + `<path d="M90 52l-12 18h9l-11 18" class="accent"/>`
-    + `<g class="fill">${drop(30, 88)}${drop(35, 104)}${drop(29, 118)}${drop(88, 100)}${drop(92, 116)}${drop(84, 124)}</g>`,
-  // 17 星星：一顆大星、七顆小星、傾注的水瓶
-  () => `<g class="fill">${star(60, 74, 16, 8, 0.45)}</g><circle cx="60" cy="74" r="20" class="hair tint" stroke-dasharray="1.5 3"/>`
-    + `<g class="hair">${[[35, 60], [85, 60], [28, 84], [92, 84], [40, 102], [80, 102], [60, 106]].map(([x, y]) => star(x, y, 4, 8, 0.45)).join('')}</g>`
-    + `<path d="M38 120l11-7 6 9-11 7z" class="soft"/><path d="M53 124c3 6 1 12-2 18" class="tint" stroke-dasharray="2.5 2.5"/>`
-    + `<g class="hair tint">${waves(140, 24, 2)}${waves(146, 24, 2)}</g><path d="M62 146c8-10 22-12 34-8"/><path d="M84 138v-12M80 124q4-5 8 0" class="hair"/>`,
-  // 18 月亮：月相、露滴、雙塔與蜿蜒的小徑
-  () => `<g class="hair tint">${rays(60, 68, 18, 23, 18)}</g><circle cx="60" cy="68" r="15" class="soft"/>`
-    + `<path d="M66 55a15 15 0 1 0 0 26 11 11 0 1 1 0-26z"/>`
-    + `<g class="fill">${drop(44, 90)}${drop(52, 96)}${drop(60, 92)}${drop(68, 96)}${drop(76, 90)}</g>`
-    + `<path d="M24 132h28M68 132h28M26 132v-24h9v24M28 108v-4h5v4M85 132v-24h9v24M87 108v-4h5v4"/>`
-    + `<path d="M56 148c-6-9 10-13 4-24s4-12 0-17" class="hair"/><g class="hair tint">${waves(144, 38, 3)}</g>`,
-  // 19 太陽：有笑容的太陽、磚牆與向日葵
-  () => `${rays(60, 82, 20, 32, 12)}<g class="hair tint">${rays(60, 82, 20, 27, 12, 15, 375)}</g>`
-    + `<circle cx="60" cy="82" r="16" class="soft"/><g class="fill">${dots([[54, 80], [66, 80]], 1.5)}</g><path d="M54 87q6 5 12 0" class="hair"/>`
-    + `<path d="M24 130h72M24 138h72"/><path d="M36 130v8M52 130v8M68 130v8M84 130v8M28 138v8M44 138v8M60 138v8M76 138v8M92 138v8" class="hair"/>`
-    + [34, 52, 70, 88].map((x) => `<g class="hair tint">${rays(x, 120, 4, 7, 8)}</g><circle cx="${x}" cy="120" r="3" class="fill"/><path d="M${x} 124v6" class="hair"/>`).join(''),
-  // 20 審判：雲端的號角、十字旗、甦醒的人
-  () => `<path d="M32 72q4-8 12-4 4-8 14-4 8-6 14 2 8-2 12 6" class="hair"/>`
-    + `<path d="M48 56l26 26"/><path d="M70 78l12 2-5 11z" class="soft"/><g class="fill">${dots([[47, 55]], 2)}</g>`
-    + `<path d="M36 80h18v16h-18z" class="soft"/><path d="M45 80v16M36 88h18" class="accent"/>`
-    + `<path d="M24 112l10-9 8 8M78 110l8-8 10 10" class="hair"/>`
-    + `<path d="M28 132h16v14h-16zM52 128h16v18h-16zM76 132h16v14h-16z"/>`
-    + `<g class="soft">${dots([[36, 124], [84, 124]], 3.2)}${dots([[60, 118]], 3.6)}</g><path d="M32 130l-3-8M40 130l3-8M55 126l-4-9M65 126l4-9M80 130l-3-8M88 130l3-8"/>`,
-  // 21 世界：桂冠、緞帶、四角的守護
-  () => `<g class="soft">${leafRing(60, 98, 24, 36, 22)}</g><ellipse cx="60" cy="98" rx="24" ry="36" class="hair"/>`
-    + `<path d="M54 60l6 5 6-5M54 136l6-5 6 5" class="accent"/>`
-    + `<g class="fill">${star(60, 98, 8, 8, 0.45)}</g><path d="M49 86v24M71 86v24"/><g class="fill">${dots([[49, 86], [49, 110], [71, 86], [71, 110]], 1.6)}</g>`
-    + `<circle cx="31" cy="70" r="4" class="soft"/><path d="M27 64q4-3 8 0" class="hair"/>`
-    + `<path d="M84 70q5-6 10 0M86 73q3-2 6 0" class="hair"/><g class="fill">${dots([[89, 66]], 1.4)}</g>`
-    + `<circle cx="31" cy="138" r="4" class="soft"/><path d="M26 133q5 4 10 0" class="hair"/>`
-    + `<g class="hair tint">${rays(89, 138, 5, 8, 9)}</g><circle cx="89" cy="138" r="4" class="soft"/>`,
+// ── 人物與景物的零件 ──
+// 畫風：暮色天空上的鎏金細線；人物是帶垂墜弧線的長袍剪影，臉與手臂受光。
+const head = (x, y, r = 5) => `<rect x="${f(x - r * 0.3)}" y="${f(y + r * 0.6)}" width="${f(r * 0.6)}" height="${f(r * 0.9)}" class="skin"/>`
+  + `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(r * 0.86)}" ry="${f(r)}" class="skin"/>`
+  + `<path d="M${f(x - r * 0.9)} ${f(y + r * 0.25)}a${f(r * 0.9)} ${f(r * 1.06)} 0 0 1 ${f(r * 1.8)} 0q${f(-r * 0.2)} ${f(-r * 0.75)} ${f(-r * 0.9)} ${f(-r * 0.7)}t${f(-r * 0.9)} ${f(r * 0.7)}z" class="deep"/>`
+  + `<path d="M${f(x - r * 0.5)} ${f(y + r * 0.22)}q${f(r * 0.17)} ${f(r * 0.2)} ${f(r * 0.34)} 0M${f(x + r * 0.16)} ${f(y + r * 0.22)}q${f(r * 0.17)} ${f(r * 0.2)} ${f(r * 0.34)} 0" class="hair"/>`;
+
+// 長袍：一整塊實心色塊，上面有斜向的對比飾帶、帶毛點的領口和下襬滾邊
+let ROBE_ID = 0;
+const CONTRAST = { deep: 'soft', soft: 'deep', skin: 'soft' };
+function robe(x, top, w1, w2, h, cls = 'soft') {
+  const l = x - w1 / 2; const r = x + w1 / 2; const bl = x - w2 / 2; const br = x + w2 / 2; const bot = top + h;
+  const d = `M${f(l)} ${f(top)}C${f(l - 1)} ${f(top + h * 0.4)} ${f(bl + 2)} ${f(top + h * 0.72)} ${f(bl - 1.5)} ${f(bot)}`
+    + `L${f(br + 1.5)} ${f(bot)}C${f(br - 2)} ${f(top + h * 0.72)} ${f(r + 1)} ${f(top + h * 0.4)} ${f(r)} ${f(top)}`
+    + `Q${f(x)} ${f(top - 3.5)} ${f(l)} ${f(top)}z`;
+  const id = `robe-${(ROBE_ID += 1)}`;
+  const alt = CONTRAST[cls] || 'deep';
+  const collar = Math.max(2.4, h * 0.09);
+  let ticks = '';
+  for (let tx = l + 1.5; tx < r - 0.5; tx += 2.4) ticks += `M${f(tx)} ${f(top + collar * 0.25)}v${f(collar * 0.4)}`;
+  return `<clipPath id="${id}"><path d="${d}"/></clipPath><path d="${d}" class="${cls}"/>`
+    + `<g clip-path="url(#${id})">`
+    + `<path d="M${f(l - 2)} ${f(top + h * 0.2)}L${f(br + 4)} ${f(bot - h * 0.22)}v${f(h * 0.16)}L${f(l - 2)} ${f(top + h * 0.36)}z" class="${alt}"/>`
+    + `<path d="M${f(bl - 4)} ${f(bot - Math.max(2.2, h * 0.07))}h${f(w2 + 8)}v6h${f(-w2 - 8)}z" class="${cls === 'skin' ? 'deep' : 'skin'}"/>`
+    + `<path d="M${f(l - 2)} ${f(top - 4)}h${f(w1 + 4)}v${f(collar + 4)}h${f(-w1 - 4)}z" class="skin"/><path d="${ticks}" class="hair"/>`
+    + `</g>`;
+}
+function arm(x1, y1, x2, y2, cls = 'skin') {
+  const dx = x2 - x1; const dy = y2 - y1; const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len; const uy = dy / len; const nx = -uy; const ny = ux;
+  const a = 2.6; const b = 1.7;
+  return `<path d="M${f(x1 + nx * a)} ${f(y1 + ny * a)}L${f(x2 + nx * b)} ${f(y2 + ny * b)}L${f(x2 - nx * b)} ${f(y2 - ny * b)}L${f(x1 - nx * a)} ${f(y1 - ny * a)}z" class="${cls}"/>`
+    + `<path d="M${f(x2 + nx * (b + 0.5) - ux * 1.6)} ${f(y2 + ny * (b + 0.5) - uy * 1.6)}L${f(x2 + nx * (b + 0.5))} ${f(y2 + ny * (b + 0.5))}L${f(x2 - nx * (b + 0.5))} ${f(y2 - ny * (b + 0.5))}L${f(x2 - nx * (b + 0.5) - ux * 1.6)} ${f(y2 - ny * (b + 0.5) - uy * 1.6)}z" class="${CONTRAST[cls] || 'deep'}"/>`
+    + `<circle cx="${f(x2 + ux * 1.5)}" cy="${f(y2 + uy * 1.5)}" r="1.5" class="skin"/>`;
+}
+const crown = (x, y, w) => `<path d="M${f(x - w / 2)} ${f(y)}l${f(w * 0.08)} ${f(-w * 0.6)} ${f(w * 0.2)} ${f(w * 0.32)} ${f(w * 0.22)} ${f(-w * 0.5)} ${f(w * 0.22)} ${f(w * 0.5)} ${f(w * 0.2)} ${f(-w * 0.32)} ${f(w * 0.08)} ${f(w * 0.6)}z" class="gilt"/>`;
+const cloud = (x, y, w) => { const a = w / 6.2; return `<path d="M${f(x)} ${f(y)}a${f(a)} ${f(a)} 0 0 1 ${f(2 * a)} ${f(-a * 0.7)}a${f(a * 1.1)} ${f(a * 1.1)} 0 0 1 ${f(2.2 * a)} ${f(-a * 0.2)}a${f(a)} ${f(a)} 0 0 1 ${f(2 * a)} ${f(a * 0.9)}z" class="mist"/>`; };
+const glow = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${f(r * 0.62)}" class="veil"/>`;
+const sun = (x, y, r, n = 14) => `<g>${rays(x, y, r + 2.5, r + 6.5, n)}</g><circle cx="${x}" cy="${y}" r="${r}" class="soft"/>`;
+const tree = (x, y, h) => `<path d="M${x} ${y}v${-h * 0.5}"/><path d="M${x} ${f(y - h)}c${f(h * 0.3)} ${f(h * 0.16)} ${f(h * 0.36)} ${f(h * 0.5)} 0 ${f(h * 0.62)}c${f(-h * 0.36)} ${f(-h * 0.12)} ${f(-h * 0.3)} ${f(-h * 0.46)} 0 ${f(-h * 0.62)}z" class="deep"/>`;
+const pillar = (x, top, bottom, w = 8, cls = 'soft') => `<rect x="${x - w / 2}" y="${top}" width="${w}" height="${bottom - top}" class="${cls}"/><path d="M${x - w / 2 - 2} ${top}h${w + 4}M${x - w / 2 - 2} ${bottom}h${w + 4}M${x - w / 2 - 1} ${top - 3}h${w + 2}"/><path d="M${x - 1.5} ${top}v${bottom - top}M${x + 1.5} ${top}v${bottom - top}" class="hair"/>`;
+const ground = (y) => `<path d="M14 ${y}q23-5 46 0t46-1v${154 - y + 6}h-92z" class="land"/><path d="M14 ${y}q23-5 46 0t46-1" class="tint"/>`;
+const hills = (y) => `<path d="M14 ${y - 8}q26-14 50-2t42-10v${154 - y + 22}h-92z" class="veil"/><path d="M14 ${y}q22-16 44-4t48-8v${154 - y + 12}h-92z" class="land"/><path d="M14 ${y}q22-16 44-4t48-8" class="tint"/>`;
+const peaks = (y) => `<path d="M14 ${y}l12-20 9 12 10-24 12 22 9-12 12 18 10-16 8 14 10-12v18z" class="veil"/><path d="M14 ${y}l12-20 9 12 10-24 12 22 9-12 12 18 10-16 8 14 10-12" class="hair"/>`;
+
+// 站立的人：x 是身體中線，foot 是腳底，h 是身高。l / r 是雙手相對肩膀的位移。
+function person(x, foot, h, { cls = 'soft', l, r, hair = false } = {}) {
+  const hr = h * 0.115;
+  const hy = foot - h + hr;
+  const sy = hy + hr + 2.4;
+  const w1 = h * 0.24;
+  const w2 = h * 0.46;
+  const la = l || [-3, h * 0.3];
+  const ra = r || [3, h * 0.3];
+  return (hair ? `<path d="M${f(x - hr * 0.9)} ${f(hy - hr * 0.6)}c${f(-hr * 1.6)} ${f(hr * 1.4)} ${f(-hr * 0.4)} ${f(hr * 3.4)} ${f(-hr * 2)} ${f(hr * 5.2)}c${f(hr * 2)} ${f(-hr * 0.4)} ${f(hr * 3)} ${f(-hr * 2)} ${f(hr * 2.9)} ${f(-hr * 4.4)}z" class="deep"/>` : '')
+    + robe(x, sy, w1, w2, foot - sy, cls)
+    + arm(x - w1 / 2 + 1.5, sy + 2.5, x - w1 / 2 + la[0], sy + la[1], cls)
+    + arm(x + w1 / 2 - 1.5, sy + 2.5, x + w1 / 2 + ra[0], sy + ra[1], cls)
+    + head(x, hy, f(hr));
+}
+
+// 坐著的人：seat 是座面高度。上身與裙襬是同一件長袍，膝蓋處往外展開。
+function seated(x, seat, h, { cls = 'soft', l, r } = {}) {
+  const hr = h * 0.115;
+  const hy = seat - h * 0.56;
+  const sy = hy + hr + 2.4;
+  const w1 = h * 0.26;
+  const footY = seat + h * 0.42;
+  const la = l || [-3, h * 0.26];
+  const ra = r || [3, h * 0.26];
+  const gown = robe(x, seat - 2, w1 * 1.7, w1 * 2.7, footY - seat + 2, cls) + robe(x, sy, w1, w1 * 1.5, seat - sy + 1, cls);
+  return gown
+    + arm(x - w1 / 2 + 1.5, sy + 2.5, x - w1 / 2 + la[0], sy + la[1], cls)
+    + arm(x + w1 / 2 - 1.5, sy + 2.5, x + w1 / 2 + ra[0], sy + ra[1], cls)
+    + head(x, hy, f(hr));
+}
+
+const throne = (x, seat, w, top) => `<path d="M${x - w / 2} 154V${top + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V154z" class="veil"/><path d="M${x - w / 2} 154V${top + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V154"/><path d="M${x - w / 2 + 4} 154V${top + w / 2 + 2}a${w / 2 - 4} ${w / 2 - 4} 0 0 1 ${w - 8} 0V154" class="hair"/><g class="fill">${star(x, top + 7, 2.6, 4, 0.4)}</g>`;
+
+// 馬：面向右，(x, y) 是身體中心。dir = -1 時面向左。
+function horse(x, y, s = 1, dir = 1, cls = 'skin') {
+  return `<g transform="translate(${x} ${y}) scale(${f(s * dir)} ${s})">`
+    + `<path d="M-13-2q-7 2-6 13" class="hair"/><path d="M-9 4v14M-4 6v12M7 6v12M12 4v14"/>`
+    + `<ellipse cx="0" cy="0" rx="14" ry="7.5" class="${cls}"/>`
+    + `<path d="M7-5L15-19l7 2 4 6-2 3-6-2-3 13z" class="${cls}"/><path d="M16-19l1-4 2.5 3.5M9-8q4-7 6-11" class="hair"/><circle cx="19.5" cy="-14.5" r="0.8" class="fill"/>`
+    + `</g>`;
+}
+
+// 小動物：狗／狼。howl 為 true 時仰頭。
+function dog(x, y, s = 1, dir = 1, cls = 'skin', howl = false) {
+  return `<g transform="translate(${x} ${y}) scale(${f(s * dir)} ${s})">`
+    + `<path d="M-6 2v6M-3 3v5M3 3v5M6 2v6M-7-1q-4-2-4-7" />`
+    + `<ellipse cx="0" cy="0" rx="7" ry="3.6" class="${cls}"/>`
+    + (howl ? `<path d="M4-2l3-9 4-5 1 5-2 3-1 7z" class="${cls}"/>` : `<path d="M5-3l4-5 5 1 1 3-4 2-3 4z" class="${cls}"/><path d="M9-8l0-3 2 2"/>`)
+    + `</g>`;
+}
+
+function lion(x, y, s = 1) {
+  return `<g transform="translate(${x} ${y}) scale(${s})">`
+    + `<path d="M18-2q8-2 8-12" /><circle cx="26" cy="-15" r="1.8" class="fill"/><path d="M-2 5v9M3 6v8M12 6v8M17 5v9"/>`
+    + `<ellipse cx="8" cy="0" rx="13" ry="7" class="skin"/>`
+    + `<g class="tint">${rays(-9, -4, 8, 11.5, 14)}</g><circle cx="-9" cy="-4" r="8.2" class="deep"/><circle cx="-10" cy="-3" r="4.8" class="skin"/>`
+    + `<g class="fill"><circle cx="-11.8" cy="-4" r="0.8"/><circle cx="-8.4" cy="-4" r="0.8"/></g><path d="M-10-2v2.4M-12 1.4q2 1.6 4 0" class="hair"/>`
+    + `</g>`;
+}
+
+const wings = (x, y, span) => {
+  const cls = 'skin';
+  const s = span;
+  const one = (d) => `<path d="M${x} ${y}c${f(-d * s * 0.25)} ${f(-s * 0.55)} ${f(-d * s * 0.85)} ${f(-s * 0.6)} ${f(-d * s)} ${f(-s * 0.15)}c${f(d * s * 0.22)} ${f(-s * 0.02)} ${f(d * s * 0.3)} ${f(s * 0.12)} ${f(d * s * 0.32)} ${f(s * 0.22)}c${f(d * s * 0.2)} ${f(-s * 0.02)} ${f(d * s * 0.26)} ${f(s * 0.1)} ${f(d * s * 0.28)} ${f(s * 0.2)}c${f(d * s * 0.2)} 0 ${f(d * s * 0.3)} ${f(s * 0.1)} ${f(d * s * 0.4)} ${f(s * 0.28)}z" class="${cls}"/>`
+    + `<path d="M${f(x - d * s * 0.2)} ${f(y - s * 0.12)}q${f(-d * s * 0.3)} ${f(-s * 0.3)} ${f(-d * s * 0.62)} ${f(-s * 0.16)}" class="hair"/>`;
+  return one(1) + one(-1);
+};
+
+// 四個花色的器物，原點在中心，大小約 20 × 30
+const SUIT_GLYPH = {
+  wands: `<path d="M-2.2 14.5q-1-8 0-14t0.4-14.5q2-1.6 4 0-0.8 8 0.2 14.5t-0.2 14z" class="soft"/>`
+    + `<path d="M-1.6 8q2-1.2 3.6 0M-1.8-2q2-1.4 3.8 0M-0.2-9l1.6 1.4M0.6 3l1-1.6" class="hair"/>`
+    + `<path d="M1.6-8c5-1 7.4-4 6.4-8-4.4 1-6.4 4-6.4 8zM-1.8-3c-5-1-7.4-4-6.4-8 4.4 1 6.4 4 6.4 8zM1.8 3c4.4 0 6.4-3 5.4-6-3.4 1-5.4 3-5.4 6z" class="deep"/>`
+    + `<path d="M2.6-9.6l3.6-4.6M-2.8-4.6l-3.6-4.6M2.8 1.8l3-3.4" class="hair"/>`,
+  cups: `<path d="M-8.5-13c0 11 3.2 16 8.5 16s8.5-5 8.5-16z" class="soft"/><ellipse cx="0" cy="-13" rx="8.5" ry="2.4" class="skin"/>`
+    + `<path d="M-7.6-6q7.6 3.4 15.2 0M-6.4-1.5q6.4 3 12.8 0" class="hair"/><g class="fill"><circle cx="0" cy="-2.6" r="1.1"/><circle cx="-4.2" cy="-3.6" r="0.8"/><circle cx="4.2" cy="-3.6" r="0.8"/></g>`
+    + `<path d="M-1.2 3h2.4v6h-2.4z" class="skin"/><ellipse cx="0" cy="6" rx="2.6" ry="1.4" class="deep"/><path d="M-7 14.5q7-7 14 0z" class="soft"/>`,
+  swords: `<path d="M0-16l2.8 5.4v15.6h-5.6v-15.6z" class="skin"/><path d="M0-11v15.6" class="hair"/>`
+    + `<path d="M-8 5q8 3.4 16 0q1.6-2.4-0.6-3.2q-7.4 2.4-14.8 0q-2.2 0.8-0.6 3.2z" class="deep"/>`
+    + `<path d="M-1.4 6.6h2.8v6h-2.8z" class="soft"/><path d="M-1.4 8.6h2.8M-1.4 10.6h2.8" class="hair"/><circle cx="0" cy="14.4" r="2.1" class="deep"/>`,
+  pentacles: `<circle cx="0" cy="0" r="11.5" class="soft"/><circle cx="0" cy="0" r="9" class="skin"/>${star(0, 0, 7.8)}`
+    + `<g class="fill">${[0, 36, 72, 108, 144, 180, 216, 252, 288, 324].map((d) => { const r = (d * Math.PI) / 180; return `<circle cx="${f(10.2 * Math.cos(r))}" cy="${f(10.2 * Math.sin(r))}" r="0.6"/>`; }).join('')}<circle cx="0" cy="0" r="1.4"/></g>`,
+};
+const obj = (suit, x, y, s = 1, rot = 0) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">${SUIT_GLYPH[suit]}</g>`;
+
+// 各花色的背景：權杖是荒野與金字塔，聖杯是海，寶劍是風雲，錢幣是田園
+const BACKDROP = {
+  wands: () => `${sun(92, 46, 6, 10)}<path d="M72 138l12-22 12 22z" class="soft"/><path d="M84 116l4 22" class="hair"/>${hills(140)}<path d="M22 146q3-4 6 0M40 148q3-4 6 0M70 146q3-4 6 0" class="hair"/>`,
+  cups: () => `${cloud(18, 50, 26)}${cloud(74, 44, 24)}<path d="M14 128h92v26h-92z" class="soft"/><g class="hair tint">${waves(128)}${waves(136)}${waves(144)}</g><path d="M14 128h92"/>`,
+  swords: () => `${cloud(16, 60, 34)}${cloud(62, 48, 40)}${cloud(28, 86, 24)}<path d="M82 70q3-3 6 0M90 64q3-3 6 0M22 40q3-3 6 0" class="hair"/>${hills(142)}<path d="M20 148l4-6M30 150l4-6M84 146l4-6" class="hair"/>`,
+  pentacles: () => `${tree(24, 138, 32)}${tree(96, 136, 28)}${hills(140)}<path d="M20 148h14M44 150h18M72 147h20" class="hair"/><g class="fill">${dots([[40, 142], [66, 144], [86, 143]], 1.2)}</g>`,
+};
+
+// ── 22 張大牌的場景 ──
+const SCENES = [
+  // 0 愚者
+  () => `${sun(30, 48, 7)}<path d="M40 60q3-3 6 0M52 52q3-3 6 0" class="hair"/>`
+    + `<path d="M80 154l8-26 8 14 10-20v32z" class="skin"/><path d="M80 154l8-26 8 14 10-20" class="hair"/>`
+    + `<path d="M14 124l56-6 8 12-4 24h-60z" class="soft"/><path d="M14 124l56-6 8 12-4 24M24 134l10-1M40 142l12-2M22 146l8-1" class="hair"/>`
+    + `${dog(34, 112, 0.9, 1, 'skin')}`
+    + `<path d="M62 96L36 72"/><path d="M36 72c-7-2-10 6-5 10 5 3 10-3 5-10z" class="deep"/>`
+    + `${person(54, 120, 46, { cls: 'deep', l: [-2, 12], r: [12, 4] })}`
+    + `<path d="M50 77q4-6 10-4" class="accent"/><g class="fill">${dots([[73, 97]], 2.2)}</g><path d="M72 99v7" class="hair"/>`,
+  // 1 魔術師
+  () => `<g class="fill">${dots([[24, 38], [36, 35], [48, 38], [72, 38], [84, 35], [96, 38]], 2.2)}</g><path d="M18 40q42-12 84 0" class="hair"/>`
+    + `${lemniscate(60, 62, 0.8)}`
+    + `${person(60, 150, 76, { cls: 'skin', l: [-12, 28], r: [10, -14] })}<path d="M51 92h18v58h-18z" class="deep"/>`
+    + `<path d="M79 60v20"/><g class="fill">${dots([[79, 60], [79, 80]], 1.8)}</g><g class="hair tint">${rays(79, 58, 4, 8, 7, 190, 350)}</g>`
+    + `<rect x="24" y="114" width="72" height="6" class="soft"/><path d="M28 120v34M92 120v34M24 114h72"/>`
+    + `${obj('cups', 34, 104, 0.6)}${obj('pentacles', 50, 107, 0.5)}${obj('swords', 70, 108, 0.6, 62)}${obj('wands', 88, 104, 0.55)}`
+    + `<g class="fill">${dots([[38, 146], [48, 150], [72, 150], [82, 146]], 2.2)}</g><path d="M38 146v8M48 150v4M72 150v4M82 146v8" class="hair"/>`,
+  // 2 女祭司
+  () => `<rect x="26" y="44" width="68" height="60" class="soft"/><path d="M26 56h68M26 68h68M26 80h68M26 92h68" class="hair tint"/><g class="fill">${dots([[38, 62], [52, 62], [68, 62], [82, 62], [45, 74], [75, 74], [38, 86], [82, 86]], 1.8)}</g>`
+    + `${pillar(22, 46, 152, 9, 'deep')}${pillar(98, 46, 152, 9, 'skin')}`
+    + `${seated(60, 116, 62, { cls: 'skin', skirt: 'soft', l: [4, 20], r: [-4, 20] })}`
+    + `<circle cx="60" cy="68" r="4" class="skin"/><path d="M53 64a5 5 0 0 0 0 8 3.6 3.6 0 0 1 0-8zM67 64a5 5 0 0 1 0 8 3.6 3.6 0 0 0 0-8z" class="skin"/>`
+    + `<path d="M60 92v8M57 95h6" class="hair"/><rect x="51" y="108" width="18" height="7" rx="3" class="skin"/><path d="M55 111.5h10" class="hair"/>`
+    + `<path d="M44 148a16 8 0 0 0 32 0 16 4 0 0 1-32 0z" class="deep"/>`,
+  // 3 皇后
+  () => `${tree(24, 110, 46)}${tree(42, 104, 36)}${tree(96, 108, 44)}<g class="hair tint">${waves(96, 78, 2)}${waves(104, 78, 2)}${waves(112, 78, 2)}</g>`
+    + `${ground(128)}<ellipse cx="60" cy="126" rx="24" ry="7" class="deep"/>`
+    + `${seated(60, 120, 60, { cls: 'skin', skirt: 'skin', l: [-8, 18], r: [10, -2] })}`
+    + `<g class="fill">${[-140, -115, -90, -65, -40].map((d) => { const r = (d * Math.PI) / 180; return star(f(60 + 11 * Math.cos(r)), f(84 + 11 * Math.sin(r)), 2.2, 6, 0.5); }).join('')}</g>`
+    + `<path d="M77 78v22"/><circle cx="77" cy="76" r="3" class="deep"/>`
+    + `<path d="M30 126c-8-8-2-16 4-10 6-6 12 2 4 10l-4 5z" class="skin"/><circle cx="34" cy="122" r="2.4" class="hair"/><path d="M34 124.4v4M32 126.6h4" class="hair"/>`
+    + [18, 26, 34, 86, 94, 102].map((x) => `<path d="M${x} 154v-14M${x} 144l-2.6-4M${x} 144l2.6-4M${x} 149l-2.6-4M${x} 149l2.6-4"/>`).join(''),
+  // 4 皇帝
+  () => `<path d="M14 154l14-50 12 22 8-38 16 30 14-36 14 44 14-26v54z" class="soft"/><path d="M14 154l14-50 12 22 8-38 16 30 14-36 14 44 14-26" class="hair"/>`
+    + `${throne(60, 122, 44, 60, 'skin')}<path d="M38 62c-9-2-11-11-4-13 4-1 7 3 3 6M82 62c9-2 11-11 4-13-4-1-7 3-3 6"/>`
+    + `${seated(60, 122, 64, { cls: 'deep', skirt: 'deep', l: [-10, 14], r: [10, 18] })}`
+    + `${crown(60, 80, 14, 'skin')}<path d="M55 92q5 9 10 0v5q-5 6-10 0z" class="skin"/>`
+    + `<path d="M40 86v44M36 96h8"/><ellipse cx="40" cy="83" rx="3" ry="4.4" class="skin"/>`
+    + `<circle cx="80" cy="110" r="5.5" class="skin"/><path d="M80 104.5v-5M77.8 102h4.4M74.5 110h11" class="hair"/>`,
+  // 5 教皇
+  () => `${pillar(22, 46, 152, 9)}${pillar(98, 46, 152, 9)}<path d="M26 44h68v10h-68z" class="soft"/>`
+    + `${seated(60, 112, 62, { cls: 'deep', skirt: 'deep', l: [-10, -6], r: [10, 10] })}`
+    + `<path d="M54 70a6 4 0 0 1 12 0zM55 64a5 3.4 0 0 1 10 0zM56.5 59a3.5 2.6 0 0 1 7 0z" class="skin"/><path d="M60 56v-4M58 54h4" class="hair"/>`
+    + `<path d="M60 86v24M56 92h8" class="hair"/>`
+    + `<path d="M80 52v86M74 60h12M72 68h16M70 76h20"/>`
+    + `<path d="M26 154v-10q0-8 10-8t10 8v10z" class="soft"/><circle cx="36" cy="130" r="5" class="skin"/><path d="M32 128q4-4 8 0" class="hair"/>`
+    + `<path d="M74 154v-10q0-8 10-8t10 8v10z" class="skin"/><circle cx="84" cy="130" r="5" class="skin"/><path d="M80 128q4-4 8 0" class="hair"/>`
+    + `<path d="M52 152l16-12M68 152l-16-12"/><circle cx="51" cy="153" r="2" class="skin"/><circle cx="69" cy="153" r="2" class="skin"/>`,
+  // 6 戀人
+  () => `${sun(60, 46, 9, 16)}${wings(60, 72, 34, 'deep')}`
+    + `${robe(60, 68, 12, 22, 18, 'skin')}${arm(55, 70, 44, 80)}${arm(65, 70, 76, 80)}${head(60, 62, 5)}<path d="M54 60q6-8 12 0" class="accent"/>`
+    + `${cloud(36, 92, 48)}`
+    + `<path d="M48 154l12-36 12 36z" class="soft"/><path d="M48 154l12-36 12 36" class="hair"/>`
+    + `<path d="M24 150v-30"/><circle cx="24" cy="110" r="9" class="soft"/><g class="fill">${dots([[20, 108], [27, 106], [24, 114], [29, 112]], 1.5)}</g><path d="M26 150q-6-8 0-14t-2-12" class="tint"/>`
+    + `<path d="M96 150v-28"/><g class="fill">${[[92, 118], [100, 116], [96, 108], [90, 108], [102, 106], [96, 98]].map(([x, y]) => `<path d="M${x} ${y}c-2.4-4 0-6 0-8.4 2.4 2.4 2.4 4.8 0 8.4z"/>`).join('')}</g>`
+    + `${ground(148)}${person(38, 148, 44, { cls: 'skin', hair: true, l: [-2, 14], r: [6, 6] })}${person(82, 148, 46, { cls: 'skin', l: [-6, 4], r: [2, 14] })}`,
+  // 7 戰車
+  () => `<path d="M14 84h10v-8h6v8h12v-12h8v12h20v-12h8v12h12v-8h6v8h10v20h-92z" class="skin"/><path d="M14 84h10v-8h6v8h12v-12h8v12h20v-12h8v12h12v-8h6v8h10" class="hair"/>`
+    + `${ground(140)}<circle cx="28" cy="128" r="9" class="skin"/><g class="hair">${rays(28, 128, 2, 9, 8)}</g><circle cx="92" cy="128" r="9" class="skin"/><g class="hair">${rays(92, 128, 2, 9, 8)}</g>`
+    + `<path d="M34 54h52l5 12h-62z" class="deep"/><g class="skin">${star(46, 60, 2.2, 6, 0.5)}${star(60, 60, 2.2, 6, 0.5)}${star(74, 60, 2.2, 6, 0.5)}</g><path d="M36 66v40M84 66v40"/>`
+    + `${robe(60, 84, 16, 20, 22, 'soft')}${arm(53, 88, 46, 100)}${arm(67, 88, 76, 96)}${head(60, 77, 5.4)}${crown(60, 73, 10, 'deep')}<path d="M76 84v18" /><g class="fill">${star(60, 96, 3, 4, 0.4)}</g>`
+    + `<rect x="34" y="104" width="52" height="24" rx="2" class="skin"/><path d="M55 116q-8-7-14 0M65 116q8-7 14 0"/><circle cx="60" cy="116" r="3.6" class="deep"/>`
+    + `<path d="M30 152h20v-12q0-6-6-6t-6 6v5h-8z" class="deep"/><circle cx="44" cy="131" r="4.2" class="deep"/><path d="M39 130l-3 9M49 130l3 9" class="hair"/>`
+    + `<path d="M90 152h-20v-12q0-6 6-6t6 6v5h8z" class="skin"/><circle cx="76" cy="131" r="4.2" class="skin"/><path d="M81 130l3 9M71 130l-3 9" class="hair"/>`,
+  // 8 力量
+  () => `<path d="M14 132l14-34 10 18 8-10 10 26z" class="soft"/><path d="M14 132l14-34 10 18 8-10 10 26" class="hair"/>${ground(138)}`
+    + `${lion(74, 124, 1.15)}`
+    + `${person(40, 142, 62, { cls: 'skin', hair: true, l: [20, 30], r: [14, 22] })}`
+    + `${lemniscate(40, 70, 0.75)}<g class="fill">${dots([[35, 80], [40, 78.6], [45, 80]], 1.5)}${dots([[34, 106], [38, 108], [42, 108], [46, 106]], 1.3)}</g>`
+    + `<path d="M24 150q3-4 6 0M92 148q3-4 6 0M56 150q3-4 6 0" class="hair"/>`,
+  // 9 隱士
+  () => `<g class="skin">${dots([[24, 42], [40, 36], [96, 40], [86, 56], [30, 62], [100, 74]], 1.1)}</g>`
+    + `<path d="M14 154v-14l22-12 26 8 22-14 22 10v22z" class="skin"/><path d="M14 140l22-12 26 8 22-14 22 10M30 138l8 4M70 132l8-4" class="hair"/>`
+    + `<path d="M40 62v78"/>`
+    + `<path d="M58 60q-12 6-14 30l-4 46h36l-4-46q-2-24-14-30z" class="deep"/><path d="M52 76q6-8 12 0v8q-6 6-12 0z" class="skin"/><path d="M54 86q4 12 8 0" class="hair"/><path d="M50 106q10 6 22 2" class="hair"/>`
+    + `${arm(66, 84, 80, 84)}<path d="M80 86v4"/><path d="M74 94l6-4 6 4v14l-6 4-6-4z" class="skin"/><g class="fill">${star(80, 101, 4.4, 6, 0.5)}</g><g class="hair tint">${rays(80, 101, 9, 15, 12)}</g>`
+    + `${arm(50, 84, 41, 96)}`,
+  // 10 命運之輪
+  () => `${cloud(14, 50, 26)}${cloud(80, 50, 26)}${cloud(14, 150, 26)}${cloud(80, 150, 26)}`
+    + `<circle cx="22" cy="40" r="3.4" class="skin"/><path d="M18 44h8v5h-8z" class="soft"/><circle cx="98" cy="40" r="3.4" class="skin"/><path d="M95 39l-4 2 4 1" /><path d="M94 44h8v5h-8z" class="soft"/>`
+    + `<circle cx="22" cy="140" r="3.4" class="skin"/><path d="M18.4 137q3.6 3 7.2 0" class="hair"/><circle cx="98" cy="140" r="3.4" class="skin"/><g class="hair tint">${rays(98, 140, 4, 6.4, 8)}</g>`
+    + `<circle cx="60" cy="96" r="31" class="soft"/><circle cx="60" cy="96" r="23" class="skin"/><circle cx="60" cy="96" r="8" class="soft"/>${rays(60, 96, 8, 23, 8)}`
+    + `<g class="fill">${dots([[60, 96]], 2.6)}${[0, 90, 180, 270].map((d) => { const r = (d * Math.PI) / 180; return star(f(60 + 27 * Math.cos(r)), f(96 + 27 * Math.sin(r)), 2.6, 4, 0.45); }).join('')}</g><g class="hair">${dots([[79.1, 76.9], [79.1, 115.1], [40.9, 76.9], [40.9, 115.1]], 1.6)}</g>`
+    + `<path d="M52 66h14v-7q0-4-4-4t-4 4v3h-6z" class="deep"/><circle cx="62" cy="52" r="3.4" class="deep"/><path d="M68 60l8-12" />`
+    + `<path d="M30 68q-8 8 0 16t-2 16-2 12" class="accent"/>`
+    + `<path d="M88 112q8 6 4 16t-14 10q-4-2-2-6" class="deep"/><path d="M86 112l-2-7 5 3 2-5 2 8z" class="deep"/>`,
+  // 11 正義
+  () => `<rect x="26" y="44" width="68" height="52" class="deep"/><path d="M26 96h68" />${pillar(22, 46, 152, 9)}${pillar(98, 46, 152, 9)}`
+    + `${throne(60, 120, 36, 70, 'skin')}${seated(60, 120, 64, { cls: 'soft', skirt: 'soft', l: [-10, 8], r: [10, 10] })}`
+    + `<rect x="54" y="72" width="12" height="6" class="skin"/><rect x="58" y="69" width="4" height="4" class="deep"/>`
+    + `<path d="M40 46l2.4 5v46h-4.8v-46z" class="skin"/><path d="M34 97h12M40 97v8"/><circle cx="40" cy="107" r="1.8" class="fill"/>`
+    + `<path d="M80 100v-6M68 100h24M68 100l-5 12M68 100l5 12M92 100l-5 12M92 100l5 12"/><path d="M62 112a6 4 0 0 0 12 0zM86 112a6 4 0 0 0 12 0z" class="skin"/>`,
+  // 12 吊人
+  () => `<path d="M58 44h4v110h-4z" class="soft"/><rect x="22" y="40" width="76" height="6" rx="2" class="soft"/>`
+    + `<g class="deep">${[[26, 38], [36, 36], [46, 38], [74, 38], [84, 36], [94, 38]].map(([x, y]) => `<path d="M${x} ${y}c-3-5 0-8 0-10 3 2 3 5 0 10z"/>`).join('')}</g><path d="M30 46v8M90 46v8" class="hair"/>`
+    + `<g class="hair tint">${rays(60, 128, 11, 17, 16)}</g><circle cx="60" cy="128" r="10" class="soft"/>`
+    + `<path d="M60 46v10" /><path d="M60 56v30" class="limb"/><path d="M60 86l11-9-9-9" class="limb"/>`
+    + `<path d="M53 86h14l3 28h-20z" class="deep"/><path d="M51 112l-7-10 9-8M69 112l7-10-9-8" class="limb"/>`
+    + `${head(60, 122, 5.6)}<path d="M55 124q5 10 10 0" class="hair"/><path d="M54.4 122q5.6 8 11.2 0v6q-5.6 6-11.2 0z" class="deep"/>`,
+  // 13 死神
+  () => `<path d="M72 132a13 13 0 0 1 26 0z" class="soft"/><g class="hair tint">${rays(85, 132, 15, 21, 9, 200, 340)}</g>`
+    + `<path d="M66 132v-22h7v22zM97 132v-22h7v22z" class="skin"/><path d="M67 110v-4h5v4M98 110v-4h5v4"/>`
+    + `${ground(132)}<g class="hair tint">${waves(140)}${waves(147)}</g>`
+    + `<path d="M62 100L66 42"/><path d="M66 44h30v24h-30z" class="deep"/><g class="skin">${[0, 72, 144, 216, 288].map((d) => { const r = (d * Math.PI) / 180; return `<circle cx="${f(81 + 4.4 * Math.cos(r))}" cy="${f(56 + 4.4 * Math.sin(r))}" r="3.2"/>`; }).join('')}</g><circle cx="81" cy="56" r="2" class="fill"/>`
+    + `${horse(44, 118, 1.45, 1, 'skin')}`
+    + `${robe(44, 88, 13, 16, 20, 'deep')}${arm(50, 92, 62, 100)}${arm(38, 92, 34, 104)}${head(44, 80, 5.6)}<g class="fill">${dots([[42, 79.4], [46.4, 79.4]], 1.1)}</g><path d="M42 83.4h4.4" class="hair"/><path d="M38 78q6-9 12 0" class="deep"/><path d="M44 73q-5-6-11-3" class="accent"/>`,
+  // 14 節制
+  () => `${sun(26, 48, 6, 10)}<path d="M14 100l10-18 8 12 6-8 8 14z" class="soft"/><path d="M30 154q10-22-4-54" class="hair"/>`
+    + `<path d="M14 136q24-10 46 0t46-4v22h-92z" class="soft"/><g class="hair tint">${waves(142, 14, 3)}${waves(149, 14, 3)}</g><path d="M68 154l38-18v18z" class="skin"/><path d="M68 154l38-18" class="hair"/>`
+    + `<path d="M92 138v-14M92 128l-3-4M92 128l3-4M100 134v-12M100 126l-3-4M100 126l3-4"/><g class="fill">${dots([[92, 122], [100, 120]], 2)}</g>`
+    + `${wings(60, 88, 42, 'deep')}`
+    + `<g class="hair tint">${rays(60, 70, 8, 12, 12)}</g>${person(60, 146, 72, { cls: 'skin', hair: true, l: [-6, 22], r: [8, 30] })}`
+    + `<rect x="55" y="92" width="10" height="10" class="skin"/><path d="M60 94l4 7h-8z" class="fill"/>`
+    + `<path d="M40 100h10l-2 10h-6z" class="soft"/><path d="M66 112h10l-2 10h-6z" class="soft"/><path d="M49 106q8 0 17 8" class="accent" stroke-dasharray="2.4 2.4"/>`,
+  // 15 惡魔
+  () => `<rect x="14" y="30" width="92" height="124" class="shade"/>`
+    + `<g class="skin" transform="rotate(180 60 44)">${star(60, 44, 8)}</g>`
+    + `<path d="M50 78c-12-18-26-18-34-6 6-2 10 0 12 6 4-4 8-2 10 4 4-4 8-2 12-4zM70 78c12-18 26-18 34-6-6-2-10 0-12 6-4-4-8-2-10 4-4-4-8-2-12-4z" class="soft"/>`
+    + `<rect x="42" y="112" width="36" height="12" class="skin"/><circle cx="60" cy="124" r="2.6" class="skin"/>`
+    + `<path d="M50 112l-2-22q12-12 24 0l-2 22z" class="skin"/><path d="M52 112l-4 8M68 112l4 8" class="limb"/>`
+    + `${arm(50, 88, 38, 70)}${arm(70, 88, 82, 104)}<path d="M82 104v8"/><path d="M82 118c-4-5 0-8 0-12 4 4 4 7 0 12z" class="fill"/>`
+    + `${head(60, 76, 7)}<path d="M54 71c-5-5-6-11-2-16M66 71c5-5 6-11 2-16"/><g class="fill">${dots([[57.4, 75], [62.6, 75]], 1.1)}</g><path d="M57 80q3 2 6 0M58 83l2 5 2-5" class="hair"/>`
+    + `${person(32, 150, 34, { cls: 'skin', hair: true })}${person(88, 150, 34, { cls: 'skin' })}<path d="M29 114l-2-4M35 114l2-4M85 114l-2-4M91 114l2-4" class="hair"/>`
+    + `<path d="M58 125q-14 2-24 -2M62 125q14 2 24 -2" class="skin" fill="none" stroke-dasharray="2.4 2.4"/>`,
+  // 16 高塔
+  () => `<rect x="14" y="30" width="92" height="124" class="shade"/>${cloud(14, 58, 34, 'soft')}${cloud(70, 74, 36, 'soft')}`
+    + `<path d="M26 154l12-22h44l12 22z" class="skin"/><path d="M34 146l8-6M70 148l10-8M50 150l6-8" class="hair"/>`
+    + `<path d="M46 132V64h28v68z" class="skin"/><path d="M42 64h36M46 64v-8h6v8M57 64v-8h6v8M68 64v-8h6v8M46 84h10M64 96h10M46 110h8M62 122h12" />`
+    + `<path d="M57 74h6v10h-6zM50 96h5v9h-5zM65 104h5v9h-5z" class="deep"/><g class="fill">${[[60, 72], [52, 94], [68, 102]].map(([x, y]) => `<path d="M${x} ${y}c-3-4 0-6 0-9 3 3 3 5 0 9z"/>`).join('')}</g>`
+    + `<g transform="rotate(24 78 46)">${crown(78, 50, 18, 'skin')}</g>`
+    + `<path d="M104 32l-16 20h10l-14 18" class="accent"/>`
+    + `<g transform="rotate(150 30 102)">${person(30, 116, 28, { cls: 'skin', l: [-8, -6], r: [8, -6] })}</g><g transform="rotate(-150 92 108)">${person(92, 122, 28, { cls: 'skin', l: [-8, -6], r: [8, -6] })}</g>`
+    + `<g class="skin">${drop(24, 74)}${drop(34, 62)}${drop(20, 92)}${drop(88, 58)}${drop(98, 90)}${drop(84, 92)}${drop(100, 112)}${drop(22, 124)}</g>`,
+  // 17 星星
+  () => `<g class="fill">${star(60, 50, 13, 8, 0.45)}</g><circle cx="60" cy="50" r="17" class="hair tint" stroke-dasharray="1.5 3"/>`
+    + `<g class="skin">${[[26, 42], [94, 42], [22, 66], [98, 66], [36, 80], [84, 80], [42, 58]].map(([x, y]) => star(x, y, 4, 8, 0.45)).join('')}</g>`
+    + `<path d="M92 132v-26"/><circle cx="92" cy="98" r="9" class="soft"/><path d="M88 88l4-3 3 3M92 85v-4" />`
+    + `<path d="M56 154q10-24 50-22v22z" class="skin"/><path d="M56 154q10-24 50-22" class="hair"/><path d="M82 142q3-4 6 0M94 146q3-4 6 0" class="hair"/>`
+    + `<path d="M14 134q22-8 44 2l-4 18h-40z" class="soft"/><g class="hair tint">${waves(140, 14, 2)}${waves(147, 14, 2)}</g><circle cx="30" cy="140" r="5" class="hair tint"/>`
+    + `<path d="M50 104q-8 14-2 24l22 5 3 7h-24l-8-9z" class="skin"/><path d="M44 96q-4 12 0 22h6l4-22z" class="deep"/>${head(52, 96, 5.4)}`
+    + `${arm(50, 106, 36, 118)}<path d="M30 116l8-4 4 7-8 4z" class="soft"/><path d="M32 122q-2 8 0 14" class="accent" stroke-dasharray="2.4 2.4"/>`
+    + `${arm(56, 106, 72, 114)}<path d="M70 110l8 2-2 8-8-2z" class="soft"/><path d="M74 120q4 6 2 14" class="accent" stroke-dasharray="2.4 2.4"/>`,
+  // 18 月亮
+  () => `<g class="hair tint">${rays(60, 52, 17, 23, 20)}</g><circle cx="60" cy="52" r="14" class="soft"/><path d="M66 40a14 14 0 1 0 0 24 10 10 0 1 1 0-24z" class="skin"/><circle cx="56" cy="50" r="0.9" class="fill"/><path d="M54 56q3 2 5 0" class="hair"/>`
+    + `<g class="fill">${drop(40, 72)}${drop(48, 78)}${drop(56, 74)}${drop(64, 78)}${drop(72, 74)}${drop(80, 72)}${drop(44, 86)}${drop(76, 86)}</g>`
+    + `<path d="M14 118l16-14 12 10 18-12 18 12 12-10 16 14v8h-92z" class="soft"/>`
+    + `<path d="M18 122V92h11v30zM91 122V92h11v30z" class="skin"/><path d="M19 92v-5h3v3h3v-3h3v5M92 92v-5h3v3h3v-3h3v5M22 100h3v6h-3zM95 100h3v6h-3z"/>`
+    + `${ground(122, 'skin')}<path d="M52 154q-10-10 6-18t-2-14q-4-8 4-20" class="tint"/><path d="M64 154q-8-10 6-18t0-14q-6-8 0-20" class="tint"/>`
+    + `${dog(38, 116, 1, 1, 'skin', true)}${dog(84, 116, 1.05, -1, 'deep', true)}`
+    + `<path d="M40 138h40v16h-40z" class="soft"/><g class="hair tint">${waves(142, 40, 2)}</g><ellipse cx="60" cy="149" rx="5" ry="3" class="deep"/><path d="M56 147l-5-4 1-3M64 147l5-4-1-3M57 152l-3 2M63 152l3 2"/>`,
+  // 19 太陽
+  () => `${rays(60, 56, 19, 28, 12)}<g class="tint">${[15, 45, 75, 105, 135, 165, 195, 225, 255, 285, 315, 345].map((d) => { const r = (d * Math.PI) / 180; const x1 = 60 + 19 * Math.cos(r); const y1 = 56 + 19 * Math.sin(r); const x2 = 60 + 27 * Math.cos(r); const y2 = 56 + 27 * Math.sin(r); return `<path d="M${f(x1)} ${f(y1)}q${f((y2 - y1) * 0.4)} ${f(-(x2 - x1) * 0.4)} ${f((x2 - x1) / 2)} ${f((y2 - y1) / 2)}t${f((x2 - x1) / 2)} ${f((y2 - y1) / 2)}"/>`; }).join('')}</g>`
+    + `<circle cx="60" cy="56" r="16" class="soft"/><g class="fill">${dots([[54, 53], [66, 53]], 1.5)}</g><path d="M54 60q6 5 12 0M60 54v4" class="hair"/>`
+    + `<rect x="14" y="98" width="92" height="14" class="skin"/><path d="M14 98h92M14 105h92M14 112h92M26 98v7M46 98v7M66 98v7M86 98v7M36 105v7M56 105v7M76 105v7M96 105v7" class="hair"/>`
+    + [24, 42, 78, 96].map((x) => `<path d="M${x} 98v-8"/><g class="tint">${rays(x, 86, 4, 7.5, 10)}</g><circle cx="${x}" cy="86" r="3.6" class="deep"/>`).join('')
+    + `${ground(144)}${horse(60, 130, 1.4, 1, 'skin')}`
+    + `<path d="M42 118L36 74"/><path d="M36 76q-16 4-20 22 8-6 14 2 4-12 8-22z" class="deep"/>`
+    + `${robe(56, 106, 9, 11, 14, 'skin')}${arm(52, 108, 42, 114)}${arm(60, 108, 72, 100)}${head(56, 100, 5)}<path d="M51 98q5-6 10 0" class="accent"/><path d="M58 94l2-6" class="accent"/>`,
+  // 20 審判
+  () => `${cloud(14, 78, 46)}${cloud(56, 82, 50)}${wings(60, 62, 40, 'deep')}`
+    + `${robe(60, 58, 12, 20, 18, 'skin')}${head(60, 50, 5.6)}<path d="M54 48q6-8 12 0" class="accent"/>`
+    + `${arm(56, 62, 64, 66)}<path d="M62 62l28 22-8 6z" class="soft"/><path d="M62 62l22 20"/><rect x="66" y="74" width="13" height="13" class="skin"/><path d="M72.5 74v13M66 80.5h13" class="accent"/>`
+    + `<path d="M14 118l12-16 10 12 10-18 14 18 12-16 12 16 10-12 12 14v10h-92z" class="skin"/><path d="M14 118l12-16 10 12 10-18 14 18 12-16 12 16 10-12 12 14" class="hair"/>`
+    + `<path d="M14 124h92v30h-92z" class="soft"/><g class="hair tint">${waves(130)}${waves(150)}</g>`
+    + `<rect x="18" y="138" width="20" height="12" class="skin"/><rect x="50" y="136" width="20" height="14" class="skin"/><rect x="82" y="138" width="20" height="12" class="skin"/>`
+    + `${person(28, 144, 30, { cls: 'skin', l: [-6, -12], r: [6, -12] })}${person(60, 142, 24, { cls: 'skin', l: [-6, -10], r: [6, -10] })}${person(92, 144, 30, { cls: 'skin', hair: true, l: [-6, -12], r: [6, -12] })}`
+    + `<path d="M18 144h20M50 142h20M82 144h20"/>`,
+  // 21 世界
+  () => `${cloud(14, 52, 24)}${cloud(82, 52, 24)}${cloud(14, 152, 24)}${cloud(82, 152, 24)}`
+    + `<circle cx="24" cy="42" r="4" class="skin"/><path d="M18 46q-4-2-4-6M30 46q4-2 4-6" class="hair"/>`
+    + `<circle cx="96" cy="42" r="4" class="skin"/><path d="M92 42l-5 1 5 2z" class="deep"/><circle cx="97" cy="41" r="0.7" class="fill"/>`
+    + `<circle cx="24" cy="142" r="4.4" class="skin"/><path d="M19 138q-3-2-3-5M29 138q3-2 3-5"/><g class="fill">${dots([[22.6, 141.6], [25.4, 141.6]], 0.7)}</g>`
+    + `<g class="tint">${rays(96, 142, 4.6, 7.6, 12)}</g><circle cx="96" cy="142" r="4.4" class="skin"/><g class="fill">${dots([[94.6, 141.6], [97.4, 141.6]], 0.7)}</g>`
+    + `<g class="deep">${leafRing(60, 94, 27, 42, 30)}</g><path d="M54 50l6 5 6-5M54 138l6-5 6 5" class="accent"/>`
+    + `<path d="M58 100v26M62 100l5 12-6 8" class="limb"/>`
+    + `${robe(60, 76, 11, 13, 26, 'skin')}${arm(55, 79, 43, 88)}${arm(65, 79, 77, 88)}${head(60, 69, 5.2)}<path d="M55 67q5-7 10 0" class="hair"/>`
+    + `<path d="M52 82q10 12 16 22-12-2-18-12z" class="deep"/><path d="M43 82v12M77 82v12"/><g class="fill">${dots([[43, 82], [43, 94], [77, 82], [77, 94]], 1.3)}</g>`,
 ];
 
-// 四個花色的圖徽，原點在中心，大小約 20 × 30
-const SUIT_GLYPH = {
-  wands: `<path d="M-1.7 14l.6-26h2.2l.6 26z" class="soft"/><path d="M-1.5 7h3M-1.3-3h2.6" class="hair"/>`
-    + `<path d="M1.2-7c5-1 7-4 6-8-4 1-6 4-6 8zM-1.2-1c-5-1-7-4-6-8 4 1 6 4 6 8zM1.2 4c4 0 6-3 5-6-3 1-5 3-5 6z" class="soft"/>`
-    + `<circle cx="0" cy="-13.5" r="2.2" class="fill"/>`,
-  cups: `<path d="M-8-12c0 10 3 15 8 15s8-5 8-15z" class="soft"/><ellipse cx="0" cy="-12" rx="8" ry="2.2"/>`
-    + `<path d="M-6-6q6 3 12 0" class="hair"/><path d="M0 3v7M-6 14q6-6 12 0z"/><circle cx="0" cy="6.5" r="1.4" class="fill"/>`,
-  swords: `<path d="M0-15l2.6 5v15h-5.2v-15z" class="soft"/><path d="M0-9v13" class="hair"/>`
-    + `<path d="M-7 4q7 3.5 14 0M-7 4v-2M7 4v-2M0 6v6.5"/><circle cx="0" cy="14" r="1.9" class="fill"/>`,
-  pentacles: `<circle cx="0" cy="0" r="11" class="soft"/><circle cx="0" cy="0" r="8.6" class="hair"/>${star(0, 0, 7.6)}<circle cx="0" cy="0" r="1.3" class="fill"/>`,
-};
+// ── 宮廷牌：侍者站立、騎士騎馬、王后與國王坐在王座上 ──
+const tall = (suit) => suit === 'wands' || suit === 'swords';
 
-// 數字牌的排列位置（1–10），落在窗框裡：y 50–140
+function courtScene(card) {
+  const s = card.suit;
+  const bg = BACKDROP[s]();
+  if (card.rank === 11) {
+    return bg + person(52, 146, 70, { cls: 'deep', l: [-2, 22], r: [14, tall(s) ? 8 : 2] })
+      + `<path d="M45 76q7-10 16-4l-2 4q-6-3-12 2z" class="skin"/><path d="M58 72q6-8 4-14" class="accent"/>`
+      + (tall(s) ? obj(s, 73, 76, 1.45) : obj(s, 75, 82, 1.05));
+  }
+  if (card.rank === 12) {
+    return bg + horse(54, 124, 1.5, 1, s === 'pentacles' || s === 'swords' ? 'deep' : 'skin')
+      + robe(54, 90, 13, 16, 22, 'soft') + arm(60, 94, 78, tall(s) ? 96 : 92) + arm(48, 94, 44, 108)
+      + head(54, 82, 5.6) + `<path d="M48 82q0-8 6-8t6 8z" class="deep"/><path d="M54 74q-4-10-12-8" class="accent"/>`
+      + (tall(s) ? obj(s, 80, 78, 1.35, s === 'swords' ? 24 : 8) : obj(s, 82, 84, 0.95));
+  }
+  const queen = card.rank === 13;
+  return bg + throne(56, 122, 40, queen ? 62 : 56, 'skin')
+    + `<path d="M36 ${queen ? 62 : 56}q20-14 40 0" /><g class="fill">${star(56, queen ? 58 : 52, 3, 4, 0.4)}</g>`
+    + seated(56, 122, 64, { cls: queen ? 'soft' : 'deep', skirt: queen ? 'soft' : 'deep', l: [-8, 16], r: [14, tall(s) ? 10 : 14] })
+    + crown(56, 81, queen ? 12 : 15, queen ? 'deep' : 'skin')
+    + (queen ? '' : `<path d="M51 93q5 8 10 0v4q-5 5-10 0z" class="skin"/>`)
+    + (tall(s) ? obj(s, 81, 88, 1.45) : obj(s, 84, 106, 1.05));
+}
+
+// ── 數字牌 ──
 const PIP_LAYOUTS = {
-  1: [[60, 96]],
-  2: [[60, 64], [60, 126]],
-  3: [[60, 56], [60, 95], [60, 134]],
-  4: [[42, 64], [78, 64], [42, 126], [78, 126]],
-  5: [[42, 60], [78, 60], [60, 95], [42, 130], [78, 130]],
-  6: [[42, 56], [78, 56], [42, 95], [78, 95], [42, 134], [78, 134]],
-  7: [[42, 54], [78, 54], [60, 74], [42, 95], [78, 95], [42, 136], [78, 136]],
-  8: [[42, 52], [78, 52], [60, 72], [42, 92], [78, 92], [60, 114], [42, 136], [78, 136]],
-  9: [[40, 52], [80, 52], [40, 80], [80, 80], [60, 95], [40, 110], [80, 110], [40, 138], [80, 138]],
-  10: [[40, 51], [80, 51], [60, 65], [40, 80], [80, 80], [40, 110], [80, 110], [60, 125], [40, 139], [80, 139]],
+  2: [[60, 62], [60, 124]],
+  3: [[60, 54], [60, 93], [60, 132]],
+  4: [[40, 62], [80, 62], [40, 124], [80, 124]],
+  5: [[40, 58], [80, 58], [60, 93], [40, 128], [80, 128]],
+  6: [[40, 54], [80, 54], [40, 93], [80, 93], [40, 132], [80, 132]],
+  7: [[40, 52], [80, 52], [60, 72], [40, 93], [80, 93], [40, 134], [80, 134]],
+  8: [[40, 50], [80, 50], [60, 70], [40, 90], [80, 90], [60, 112], [40, 134], [80, 134]],
+  9: [[36, 50], [84, 50], [36, 78], [84, 78], [60, 93], [36, 108], [84, 108], [36, 136], [84, 136]],
+  10: [[36, 49], [84, 49], [60, 63], [36, 78], [84, 78], [36, 108], [84, 108], [60, 123], [36, 137], [84, 137]],
 };
 
-const COURT_MARK = {
-  11: `<path d="M50 62v-18M50 44h20l-5 6 5 6h-20"/><path d="M54 50h8" class="hair"/>`, // 侍者：小旗
-  12: `<path d="M44 62c0-20 32-20 32 0zM44 62h32" class="soft"/><path d="M52 62v-9M68 62v-9M60 44v-6" /><path d="M60 38q6 2 8 8" class="hair"/>`, // 騎士：盔與羽飾
-  13: `<path d="M42 62l4-16 7 9 7-12 7 12 7-9 4 16z" class="soft"/><g class="fill"><circle cx="46" cy="45" r="1.6"/><circle cx="60" cy="42" r="1.8"/><circle cx="74" cy="45" r="1.6"/></g>`, // 王后：冠
-  14: `<path d="M42 62l2-18 8 8 8-12 8 12 8-8 2 18z" class="soft"/><path d="M60 40v-8M56 36h8M44 57h32" /><g class="fill"><circle cx="52" cy="52" r="1.4"/><circle cx="68" cy="52" r="1.4"/></g>`, // 國王：帶十字的冠
-};
+// 器物之間的藤蔓花飾
+const FLOURISH = `<path d="M60 36q-10 8-22 4M60 36q10 8 22 4M60 152q-10-8-22-4M60 152q10-8 22-4" class="hair tint"/>`
+  + `<path d="M22 92q6-10 0-20M22 92q6 10 0 20M98 92q-6-10 0-20M98 92q-6 10 0 20" class="hair tint"/>`
+  + `<g class="deep"><path d="M38 40c-4-1-6-4-5-7 4 1 5 3 5 7zM82 40c4-1 6-4 5-7-4 1-5 3-5 7zM38 148c-4 1-6 4-5 7 4-1 5-3 5-7zM82 148c4 1 6 4 5 7-4-1-5-3-5-7z"/></g>`
+  + `<g class="fill">${dots([[60, 36], [60, 152], [22, 92], [98, 92]], 1.5)}</g>`;
 
-const CORNERS = [[14, 14, 1, 1], [106, 14, -1, 1], [14, 186, 1, -1], [106, 186, -1, -1]]
-  .map(([x, y, sx, sy]) => `<path d="M${x} ${y + 10 * sy}v${-10 * sy}h${10 * sx}M${x + 3 * sx} ${y + 3 * sy}q${5 * sx} 0 ${5 * sx} ${5 * sy}"/><circle cx="${x + 3 * sx}" cy="${y + 3 * sy}" r="0.9" class="fill"/>`)
-  .join('');
+function aceScene(card) {
+  const s = card.suit;
+  const extras = {
+    wands: `<g class="deep">${[[28, 60], [40, 48], [90, 56], [96, 76], [30, 80]].map(([x, y]) => `<path d="M${x} ${y}c-3-4 0-7 0-9 3 2 3 5 0 9z"/>`).join('')}</g>`,
+    cups: `<g class="accent" stroke-dasharray="2.4 2.4"><path d="M52 92q-6 20-12 36M56 96q-2 18-4 34M60 98v32M64 96q2 18 4 34M68 92q6 20 12 36"/></g>`
+      + `<path d="M60 44q-7-7-12-2 6 0 8 6l4 6 4-6q2-6 8-6-5-5-12 2z" class="skin"/><circle cx="60" cy="58" r="2.6" class="skin"/>`,
+    swords: `${crown(60, 50, 22, 'soft')}<path d="M49 50q-8 8-6 22M71 50q8 8 6 22" class="tint"/><g class="deep">${[[44, 60], [43, 68], [76, 60], [77, 68]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.6"/>`).join('')}</g>`,
+    pentacles: `<path d="M44 154v-12q0-14 16-14t16 14v12" class="skin"/><g class="deep">${leafRing(60, 142, 17, 13, 14)}</g>`,
+  }[s];
+  return BACKDROP[s]() + extras
+    + `<g class="hair tint">${rays(64, 82, 24, 34, 18)}</g>`
+    + cloud(14, 112, 44)
+    + `<path d="M36 106l16-7 4 9-16 7z" class="deep"/><path d="M50 99l3-1 4 9-3 1z" class="skin"/>`
+    + obj(s, 62, tall(s) ? 78 : 84, tall(s) ? 2.2 : 1.7)
+    + `<path d="M55 98q7-5 12 0l1 8q-7 5-13 1z" class="skin"/><path d="M57 101h9M57 104h9" class="hair"/>`;
+}
 
-function frame() {
-  return `<rect x="3" y="3" width="114" height="194" rx="7" class="paper"/>`
-    + `<rect x="8" y="8" width="104" height="184" rx="4" class="wash"/>`
-    + `<rect x="8" y="8" width="104" height="184" rx="4"/>`
-    + `<rect x="11" y="11" width="98" height="178" rx="2.5" class="hair tint"/>`
-    + `<g class="hair tint">${CORNERS}</g>`;
+function pipScene(card) {
+  const scale = card.rank <= 3 ? 1.15 : card.rank <= 6 ? 1.02 : 0.8;
+  return FLOURISH + PIP_LAYOUTS[card.rank].map(([x, y]) => obj(card.suit, x, y, scale)).join('');
+}
+
+const WINDOW = `<rect x="14" y="30" width="92" height="124" rx="6"`;
+
+// 每張牌的點綴位置固定，用牌的序號當亂數種子
+function sprinkle(seed) {
+  let n = (seed * 9301 + 49297) % 233280;
+  const rnd = () => { n = (n * 9301 + 49297) % 233280; return n / 233280; };
+  let out = '';
+  for (let i = 0; i < 5; i += 1) out += star(f(20 + rnd() * 80), f(36 + rnd() * 44), f(1.4 + rnd() * 1.2), 4, 0.32);
+  for (let i = 0; i < 6; i += 1) out += `<circle cx="${f(18 + rnd() * 84)}" cy="${f(34 + rnd() * 60)}" r="0.7"/>`;
+  return `<g class="stars">${out}</g>`;
 }
 
 function label(card) {
-  return `<path d="M30 159h24M66 159h24" class="hair"/><g class="fill">${star(60, 159, 3.4, 4, 0.4)}</g>`
-    + `<text x="60" y="175" class="name">${card.zh}</text>`
-    + `<text x="60" y="185" class="en">${card.en}</text>`;
+  return `<path d="M26 162h24M70 162h24"/><path d="M60 158.4l3.6 3.6-3.6 3.6-3.6-3.6z" class="fill"/>`
+    + `<text x="60" y="177" class="name">${card.zh}</text>`
+    + `<text x="60" y="187" class="en">${card.en.toUpperCase()}</text>`;
 }
 
-function majorFace(card) {
-  return `${frame()}<text x="60" y="33" class="numeral">${ROMAN[card.number]}</text>`
-    + `<path d="M34 28h10M76 28h10" class="hair tint"/><g class="fill"><circle cx="31" cy="28" r="1.1"/><circle cx="89" cy="28" r="1.1"/></g>`
-    + `<path d="M22 151V78a38 38 0 0 1 76 0v73z" class="window"/>`
-    + `<g class="fill">${star(27, 46, 1.8, 4, 0.4)}${star(93, 46, 1.8, 4, 0.4)}</g>`
-    + `${EMBLEMS[card.number]()}${label(card)}`;
-}
-
-function minorFace(card) {
-  const glyph = SUIT_GLYPH[card.suit];
-  let body = `<rect x="20" y="36" width="80" height="115" rx="12" class="window"/>`;
-  if (card.court) {
-    body += `<g transform="translate(0 4)">${COURT_MARK[card.rank]}</g>`
-      + `<g class="soft">${leafRing(60, 110, 30, 30, 24)}</g>`
-      + `<circle cx="60" cy="110" r="24" class="paper"/><circle cx="60" cy="110" r="24"/><circle cx="60" cy="110" r="20.5" class="hair tint"/>`
-      + `<g transform="translate(60 110) scale(1.25)">${glyph}</g>`
-      + `<g class="fill">${star(28, 46, 2, 4, 0.4)}${star(92, 46, 2, 4, 0.4)}</g>`;
-  } else if (card.rank === 1) {
-    body += `<g class="hair tint">${rays(60, 96, 38, 46, 20)}</g><circle cx="60" cy="96" r="36" class="hair tint" stroke-dasharray="1.5 3"/>`
-      + `<g transform="translate(60 96) scale(2.3)">${glyph}</g>`
-      + `<path d="M30 142q6-6 12 0 6-6 12 0M66 142q6-6 12 0 6-6 12 0" class="hair"/>`;
-  } else {
-    const scale = card.rank <= 3 ? 1.12 : card.rank <= 6 ? 1 : 0.76;
-    body += PIP_LAYOUTS[card.rank]
-      .map(([x, y]) => `<g transform="translate(${x} ${y}) scale(${scale})">${glyph}</g>`)
-      .join('');
-  }
-  const corner = card.court ? '' : `<text x="22" y="30" class="corner">${card.rank}</text><text x="98" y="30" class="corner">${card.rank}</text>`;
-  return `${frame()}${corner}${body}${label(card)}`;
-}
+let DECK_ORDER = 0;
+const SEEDS = new Map();
 
 export function cardFaceSVG(card) {
-  const inner = card.arcana === 'major' ? majorFace(card) : minorFace(card);
-  return `<svg class="card-art el-${card.element}" viewBox="0 0 120 200" role="img" aria-label="${card.zh}">${inner}</svg>`;
+  if (!SEEDS.has(card.id)) SEEDS.set(card.id, (DECK_ORDER += 7));
+  let scene;
+  let mark;
+  if (card.arcana === 'major') {
+    scene = SCENES[card.number]();
+    mark = `<text x="60" y="25" class="numeral">${ROMAN[card.number]}</text>`;
+  } else {
+    scene = card.court ? courtScene(card) : card.rank === 1 ? aceScene(card) : pipScene(card);
+    mark = card.court ? crown(60, 26, 13) : `<text x="60" y="25" class="numeral">${card.rank}</text>`;
+  }
+  const side = card.arcana === 'major'
+    ? `<path d="M28 21h14M78 21h14"/><path d="M24 17.6l3.4 3.4-3.4 3.4-3.4-3.4zM96 17.6l3.4 3.4-3.4 3.4-3.4-3.4z" class="fill"/>`
+    : `<g transform="translate(26 20) scale(0.5)">${SUIT_GLYPH[card.suit]}</g><g transform="translate(94 20) scale(0.5)">${SUIT_GLYPH[card.suit]}</g>`;
+  return `<svg class="card-art el-${card.element}" viewBox="0 0 120 200" role="img" aria-label="${card.zh}">`
+    + `<defs><clipPath id="w-${card.id}">${WINDOW}/></clipPath></defs>`
+    + `<rect x="2" y="2" width="116" height="196" rx="8" class="paper"/><rect x="8" y="8" width="104" height="184" rx="4" class="panel"/>`
+    + `${mark}${side}`
+    + `<g clip-path="url(#w-${card.id})">${WINDOW} class="scene"/>${sprinkle(SEEDS.get(card.id))}<g transform="translate(60 98) scale(${card.arcana === 'major' || card.court ? 1.1 : 1}) translate(-60 -98)">${scene}</g></g>`
+    + `${label(card)}</svg>`;
 }
 
 // 牌背自帶顏色，才能同時當內嵌 SVG 與 CSS 背景圖用

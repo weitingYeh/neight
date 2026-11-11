@@ -123,8 +123,10 @@ async function startPick() {
       const left = (i + round) % 2 === 0;
       place(card, { x: left ? -side : side, y: L.stackY - i * 0.12, r: left ? -7 : 7, dur: 260, delay: (i % 6) * 6 });
     });
+    whoosh(0.22, 0.12, true);
     await sleep(330);
     if (!alive()) return;
+    for (let k = 0; k < 7; k += 1) setTimeout(() => tick(k % 3, 0.16), k * 34);
     state.cards.forEach((card, i) => {
       place(card, { x: (i % 3) - 1, y: L.stackY - i * 0.12, r: 0, dur: 240, delay: (i / state.cards.length) * 200 });
     });
@@ -134,6 +136,7 @@ async function startPick() {
 
   // 攤成扇形
   state.cards.forEach((card, i) => place(card, { ...L.slots[i], dur: 620, delay: i * 11 }));
+  for (let k = 0; k < 26 && !REDUCED; k += 1) setTimeout(() => tick(k % 4, 0.1), k * 33);
   await sleep(state.cards.length * 11 + 640);
   if (!alive()) return;
   state.cards.forEach((card) => {
@@ -227,12 +230,259 @@ window.addEventListener('pointerup', (event) => {
 fan.addEventListener('pointercancel', () => { pressing = false; setFocus(-1); });
 fan.addEventListener('pointerleave', (event) => { if (event.pointerType === 'mouse') setFocus(-1); });
 
+// ── 音效：全部用 Web Audio 即時合成，不載入任何音檔 ──
+let soundOn = true;
+try { soundOn = localStorage.getItem('tarot-sound') !== 'off'; } catch { /* 無痕模式等情況下讀不到，就用預設值 */ }
+let audioCtx = null;
+
+function audio() {
+  if (!soundOn) return null;
+  try {
+    audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  } catch { return null; }
+}
+
+function noiseBuffer(ctx, seconds) {
+  const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+  return buffer;
+}
+
+// 棘輪的「咖」：一小段帶通噪音加上短促的方波
+function tick(step = 0, volume = 0.5) {
+  const ctx = audio();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer(ctx, 0.06);
+  const band = ctx.createBiquadFilter();
+  band.type = 'bandpass';
+  band.frequency.value = 1500 + step * 320;
+  band.Q.value = 5;
+  const ng = ctx.createGain();
+  ng.gain.setValueAtTime(volume, t);
+  ng.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
+  noise.connect(band).connect(ng).connect(ctx.destination);
+  noise.start(t);
+  const osc = ctx.createOscillator();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(180 + step * 45, t);
+  osc.frequency.exponentialRampToValueAtTime(90 + step * 20, t + 0.05);
+  const og = ctx.createGain();
+  og.gain.setValueAtTime(volume * 0.35, t);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  osc.connect(og).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.07);
+}
+
+// 一串往上的鐘聲；音符越多越華麗
+function chime(notes, volume = 0.16, gap = 0.07) {
+  const ctx = audio();
+  if (!ctx) return;
+  notes.forEach((freq, i) => {
+    const t = ctx.currentTime + i * gap;
+    for (const [mult, level] of [[1, 1], [2, 0.35], [3.01, 0.12]]) {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq * mult;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(volume * level, t + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.3);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 1.35);
+    }
+  });
+}
+
+function whoosh(duration = 0.45, volume = 0.25, up = true) {
+  const ctx = audio();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer(ctx, duration);
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.Q.value = 1.2;
+  filter.frequency.setValueAtTime(up ? 300 : 2400, t);
+  filter.frequency.exponentialRampToValueAtTime(up ? 2600 : 260, t + duration);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(volume, t + duration * 0.4);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+  noise.connect(filter).connect(gain).connect(ctx.destination);
+  noise.start(t);
+}
+
+function boom(volume = 0.5) {
+  const ctx = audio();
+  if (!ctx) return;
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, t);
+  osc.frequency.exponentialRampToValueAtTime(38, t + 0.5);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + 0.65);
+}
+
+const buzz = (pattern) => { try { navigator.vibrate?.(pattern); } catch { /* 不支援震動就略過 */ } };
+
+function syncSoundButton() {
+  const btn = $('btn-sound');
+  btn.setAttribute('aria-pressed', String(soundOn));
+  btn.classList.toggle('is-off', !soundOn);
+}
+$('btn-sound').addEventListener('click', () => {
+  soundOn = !soundOn;
+  try { localStorage.setItem('tarot-sound', soundOn ? 'on' : 'off'); } catch { /* 存不了就只在這次生效 */ }
+  syncSoundButton();
+  if (soundOn) tick(3, 0.4);
+});
+syncSoundButton();
+
+// ── 轉開封印：拖動時每過一格就「咖」一聲，轉滿六格才抽得出牌 ──
+const NOTCHES = 6;
+const NOTCH_TRAVEL = 46; // 指標每移動這麼多像素算一格
+const sealEl = $('seal');
+const sealStage = $('seal-stage');
+
+(function buildDial() {
+  let marks = '';
+  for (let i = 0; i < 48; i += 1) {
+    const major = i % 8 === 0;
+    marks += `<line x1="100" y1="${major ? 6 : 9}" x2="100" y2="${major ? 20 : 15}" transform="rotate(${i * 7.5} 100 100)" stroke-width="${major ? 2.4 : 1}"/>`;
+  }
+  let gems = '';
+  for (let i = 0; i < NOTCHES; i += 1) {
+    gems += `<g class="seal__gem" transform="rotate(${i * 60} 100 100)"><path d="M100 22l7 9-7 9-7-9z"/></g>`;
+  }
+  $('seal-ring').innerHTML = `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="96"/><circle cx="100" cy="100" r="78"/><g>${marks}</g>${gems}</svg>`;
+  let runes = '';
+  for (let i = 0; i < 12; i += 1) runes += `<path d="M100 34l4 6-4 6-4-6z" transform="rotate(${i * 30} 100 100)"/>`;
+  document.querySelector('.seal__inner').innerHTML = `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="70" stroke-dasharray="3 6"/><circle cx="100" cy="100" r="58"/><polygon points="100,44 148.5,128 51.5,128"/><polygon points="100,156 51.5,72 148.5,72"/>${runes}</svg>`;
+}());
+
+function sealRitual(positionName) {
+  return new Promise((resolve) => {
+    let step = 0;
+    let travel = 0;
+    let last = null;
+    let moved = 0;
+    let auto = null;
+    let done = false;
+    const gems = [...sealEl.querySelectorAll('.seal__gem')];
+    const fx = $('seal-fx');
+
+    sealEl.hidden = false;
+    sealEl.className = 'seal';
+    sealEl.style.setProperty('--p', 0);
+    sealEl.style.setProperty('--rot', '0deg');
+    gems.forEach((g) => g.classList.remove('is-on'));
+    $('seal-count').textContent = `0 / ${NOTCHES}`;
+    $('seal-hint').textContent = `按住畫面拖動，轉開「${positionName}」的封印`;
+    requestAnimationFrame(() => sealEl.classList.add('is-in'));
+    whoosh(0.4, 0.2, true);
+    sealStage.focus({ preventScroll: true });
+
+    const finish = async () => {
+      done = true;
+      clearInterval(auto);
+      sealStage.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+      sealStage.removeEventListener('keydown', onKey);
+      $('seal-hint').textContent = '';
+      sealEl.classList.add('is-open');
+      boom(0.5);
+      chime([523.25, 659.25, 783.99, 1046.5, 1318.5], 0.14, 0.06);
+      buzz([30, 40, 80]);
+      const reach = sealStage.getBoundingClientRect().width * 0.7;
+      burst(fx, 60, ['#fff3c4', '#ffd76a', '#ffb347', '#ffffff', '#9fd0ff'], reach);
+      setTimeout(() => burst(fx, 30, ['#fff3c4', '#ffd76a'], reach * 0.7), 180);
+      await sleep(780);
+      sealEl.classList.add('is-out');
+      await sleep(260);
+      sealEl.hidden = true;
+      resolve();
+    };
+
+    const advance = () => {
+      if (done) return;
+      step += 1;
+      sealEl.style.setProperty('--p', step / NOTCHES);
+      sealEl.style.setProperty('--rot', `${step * 60}deg`);
+      gems[step - 1]?.classList.add('is-on');
+      $('seal-count').textContent = `${step} / ${NOTCHES}`;
+      sealEl.classList.remove('is-kick');
+      void sealEl.offsetWidth; // 重新觸發震動的動畫
+      sealEl.classList.add('is-kick');
+      tick(step, 0.55);
+      buzz(14);
+      const rect = sealStage.getBoundingClientRect();
+      const angle = ((step - 1) * 60 - 90) * (Math.PI / 180);
+      const spark = el('span', 'seal__spark');
+      spark.style.left = `${50 + Math.cos(angle) * 41}%`;
+      spark.style.top = `${50 + Math.sin(angle) * 41}%`;
+      fx.append(spark);
+      burst(spark, 9, ['#ffd76a', '#fff3c4', '#ffffff'], rect.width * 0.16);
+      setTimeout(() => spark.remove(), 1600);
+      if (step >= NOTCHES) finish();
+    };
+
+    function onDown(event) {
+      if (done) return;
+      last = [event.clientX, event.clientY];
+      moved = 0;
+      sealEl.classList.add('is-held');
+      audio();
+    }
+    function onMove(event) {
+      if (!last || done) return;
+      const d = Math.hypot(event.clientX - last[0], event.clientY - last[1]);
+      last = [event.clientX, event.clientY];
+      moved += d;
+      travel += d;
+      while (travel >= NOTCH_TRAVEL && !done) { travel -= NOTCH_TRAVEL; advance(); }
+    }
+    function onUp() {
+      if (!last) return;
+      last = null;
+      sealEl.classList.remove('is-held');
+      // 只是輕點而沒有拖動：自動一格一格轉完
+      if (!done && moved < 8 && !auto) auto = setInterval(advance, REDUCED ? 30 : 105);
+    }
+    function onKey(event) {
+      if ((event.key === 'Enter' || event.key === ' ') && !auto && !done) {
+        event.preventDefault();
+        auto = setInterval(advance, REDUCED ? 30 : 105);
+      }
+    }
+    sealStage.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    sealStage.addEventListener('keydown', onKey);
+  });
+}
+
 async function pick(index) {
   const spread = SPREADS[state.spreadKey];
   const card = state.cards[index];
   if (!state.ready || !card || card.dataset.gone || state.draws.length >= spread.positions.length) return;
+  const run = state.run;
   const order = state.draws.length;
-  state.draws.push(state.pile[index]);
+  state.ready = false;
   card.dataset.gone = '1';
   card.tabIndex = -1;
   card.dataset.order = order;
@@ -242,18 +492,25 @@ async function pick(index) {
   card.style.zIndex = 200 + order;
   setFocus(-1);
 
-  // 先往上抽出來，再飛到上方的位置
+  // 先從牌扇裡抽起來，再進入封印
   const from = state.layout.slots[index];
-  place(card, { x: from.x, y: from.y - state.layout.h * 0.55, r: from.r * 0.3, s: 1.12, dur: 260 });
-  await sleep(250);
-  place(card, { ...slotTarget(order), dur: 620 });
-  updatePickHint();
-
-  if (state.draws.length < spread.positions.length) return;
-  state.ready = false;
-  const run = state.run;
-  await sleep(760);
+  place(card, { x: from.x, y: from.y - state.layout.h * 0.6, r: from.r * 0.3, s: 1.15, dur: 260 });
+  tick(1, 0.3);
+  await sleep(260);
+  card.classList.add('is-sealed');
+  await sealRitual(spread.positions[order].zh);
   if (run !== state.run) return;
+
+  state.draws.push(state.pile[index]);
+  card.classList.remove('is-sealed');
+  place(card, { ...slotTarget(order), dur: 520 });
+  whoosh(0.3, 0.14, false);
+  updatePickHint();
+  await sleep(540);
+  if (run !== state.run) return;
+
+  if (state.draws.length < spread.positions.length) { state.ready = true; return; }
+  await sleep(300);
   // 剩下的牌收回一疊，退場
   const L = state.layout;
   state.cards.forEach((other, i) => {
@@ -261,6 +518,7 @@ async function pick(index) {
     place(other, { x: 0, y: L.stackY, r: 0, dur: 420, delay: (i % 13) * 14 });
     other.classList.add('is-leaving');
   });
+  whoosh(0.5, 0.16, false);
   await sleep(720);
   if (run !== state.run) return;
   renderSpread();
@@ -284,9 +542,9 @@ window.addEventListener('resize', () => {
 
 // 牌的等級決定翻開時的光效：大牌金光，宮廷牌次之，數字牌用元素色
 function tierOf(card) {
-  if (card.arcana === 'major') return { key: 'legend', label: '大阿爾克那', particles: 46, charge: 720 };
-  if (card.court) return { key: 'court', label: '宮廷牌', particles: 26, charge: 380 };
-  return { key: 'common', label: '', particles: 14, charge: 220 };
+  if (card.arcana === 'major') return { key: 'legend', label: '大阿爾克那', particles: 60, charge: 900 };
+  if (card.court) return { key: 'court', label: '宮廷牌', particles: 34, charge: 460 };
+  return { key: 'common', label: '', particles: 20, charge: 240 };
 }
 
 const GLOW = { fire: '#ff8a5c', water: '#6fa8ff', air: '#f2cf6b', earth: '#9fd47a' };
@@ -339,7 +597,7 @@ function renderSpread() {
     face.append(el('span', 'foil'));
     inner.append(back, face);
     tilt.append(inner);
-    flip.append(el('span', 'flip__rays'), el('span', 'flip__glow'), tilt, el('span', 'flip__flash'), el('span', 'flip__fx'));
+    flip.append(el('span', 'flip__pillar'), el('span', 'flip__rays'), el('span', 'flip__glow'), tilt, el('span', 'flip__ring'), el('span', 'flip__flash'), el('span', 'flip__fx'));
 
     const name = el('p', 'slot__name');
     if (tier.label) name.append(el('em', '', tier.label));
@@ -365,12 +623,37 @@ function renderSpread() {
   $('reading').hidden = true;
   $('ai-block').hidden = true;
   show('read');
+  placed.forEach((_, i) => setTimeout(() => { tick(i + 2, 0.4); buzz(12); }, 250 + i * 150));
+}
+
+// 大牌翻開時，整張桌面落下一陣星雨
+function starShower(host, count) {
+  if (REDUCED) return;
+  for (let i = 0; i < count; i += 1) {
+    const dot = el('span', i % 3 === 0 ? 'spark spark--star' : 'spark');
+    const size = 3 + Math.random() * 5;
+    dot.style.width = `${size}px`;
+    dot.style.height = `${size}px`;
+    dot.style.left = `${Math.random() * 100}%`;
+    dot.style.top = '-4%';
+    dot.style.setProperty('--c', ['#fff3c4', '#ffd76a', '#ffffff'][i % 3]);
+    host.append(dot);
+    const drift = (Math.random() - 0.5) * 80;
+    dot.animate([
+      { transform: 'translate(0, 0) rotate(0deg)', opacity: 0 },
+      { opacity: 1, offset: 0.15 },
+      { transform: `translate(${drift}px, ${host.clientHeight * (0.7 + Math.random() * 0.4)}px) rotate(${Math.random() * 540}deg)`, opacity: 0 },
+    ], { duration: 1300 + Math.random() * 1500, delay: Math.random() * 900, easing: 'ease-in' }).onfinish = () => dot.remove();
+  }
 }
 
 async function openCard(flip, name, p, tier, total) {
   if (flip.classList.contains('is-charging') || flip.classList.contains('is-open')) return;
   flip.classList.add('is-charging');
   flip.removeAttribute('tabindex');
+  // 蓄力：越高階的牌，咖得越久
+  const ticks = tier.key === 'legend' ? 7 : tier.key === 'court' ? 4 : 2;
+  for (let k = 0; k < ticks; k += 1) setTimeout(() => { tick(k, 0.3 + k * 0.04); buzz(10); }, (tier.charge / ticks) * k);
   await sleep(tier.charge);
   flip.classList.remove('is-charging');
   flip.classList.add('is-open', 'is-bursting');
@@ -378,13 +661,26 @@ async function openCard(flip, name, p, tier, total) {
 
   const fx = flip.querySelector('.flip__fx');
   const glow = flip.style.getPropertyValue('--glow');
-  const reach = flip.getBoundingClientRect().width * (tier.key === 'legend' ? 1.5 : tier.key === 'court' ? 1.15 : 0.9);
+  const reach = flip.getBoundingClientRect().width * (tier.key === 'legend' ? 1.7 : tier.key === 'court' ? 1.25 : 0.95);
   burst(fx, tier.particles, tier.key === 'legend' ? ['#fff3c4', '#ffd76a', '#ffb347', '#ffffff'] : [glow, '#ffffff'], reach);
   if (tier.key === 'legend') {
-    $('table').classList.add('is-shaking');
+    boom(0.55);
+    chime([392, 523.25, 659.25, 783.99, 1046.5, 1318.5, 1568], 0.15, 0.075);
+    buzz([40, 30, 40, 30, 120]);
+    $('table').classList.add('is-shaking', 'is-lit');
     setTimeout(() => $('table').classList.remove('is-shaking'), 500);
-    setTimeout(() => burst(fx, 22, ['#fff3c4', '#ffd76a'], reach * 0.8), 260);
+    setTimeout(() => $('table').classList.remove('is-lit'), 2200);
+    setTimeout(() => burst(fx, 30, ['#fff3c4', '#ffd76a'], reach * 0.8), 240);
+    setTimeout(() => burst(fx, 20, ['#ffffff', '#ffd76a'], reach * 1.1), 520);
+    starShower($('table-fx'), 46);
+  } else if (tier.key === 'court') {
+    chime([523.25, 659.25, 783.99, 1046.5], 0.13, 0.07);
+    buzz([24, 30, 50]);
+  } else {
+    chime([659.25, 987.77], 0.1, 0.08);
+    buzz(18);
   }
+  whoosh(0.35, 0.16, true);
   await sleep(420);
   name.classList.add('is-shown');
   await sleep(500);
@@ -393,14 +689,22 @@ async function openCard(flip, name, p, tier, total) {
   state.opened += 1;
   if (state.opened === total) {
     $('reveal-hint').hidden = true;
-    await sleep(tier.key === 'legend' ? 900 : 500);
+    await sleep(tier.key === 'legend' ? 1100 : 500);
     renderReading();
   }
 }
 
+function labelled(items) {
+  return items.map((item) => {
+    const row = el('p', 'labelled');
+    row.append(el('b', '', item.label), document.createTextNode(item.text));
+    return row;
+  });
+}
+
 function renderReading() {
   const placed = resolveDraws(state.draws, state.spreadKey);
-  const reading = ruleReading(placed, state.spreadKey);
+  const reading = ruleReading(placed, state.spreadKey, state.question);
   const a = reading.analysis;
 
   const elements = $('elements');
@@ -425,13 +729,12 @@ function renderReading() {
     thumb.innerHTML = cardFaceSVG(p.card);
     const body = el('div');
     const title = el('h4');
-    title.append(el('span', '', p.position.zh), document.createTextNode(`${p.card.zh}${p.reversed ? '・逆位' : '・正位'}`));
-    body.append(title, el('p', 'keywords', pos.keywords), el('p', '', pos.text));
+    title.append(el('span', '', pos.position), document.createTextNode(pos.title));
+    body.append(title, el('p', 'keywords', pos.keywords), ...labelled(pos.paras));
     wrap.append(thumb, body);
     positions.append(wrap);
   });
-  $('links').textContent = reading.links;
-  $('closing').textContent = reading.closing;
+  $('between').replaceChildren(...labelled(reading.between));
   $('blessing').textContent = reading.blessing;
 
   $('reading').hidden = false;
@@ -455,7 +758,7 @@ async function streamAiReading() {
   const status = $('ai-status');
   block.hidden = false;
   $('ai-text').replaceChildren();
-  status.textContent = 'Fable 正在看牌，通常要等十幾秒。';
+  status.textContent = 'Fable 正在看牌，大約要等半分鐘。';
   state.aiAbort?.abort();
   state.aiAbort = new AbortController();
   try {
@@ -480,6 +783,11 @@ async function streamAiReading() {
       renderAiText(text);
     }
     if (!text.trim()) throw new Error('沒有收到內容');
+    const cut = text.lastIndexOf('## 給你的一句話');
+    if (cut >= 0) {
+      const line = text.slice(cut).split('\n').slice(1).join(' ').trim();
+      if (line) { $('blessing').textContent = line; renderAiText(text.slice(0, cut)); }
+    }
   } catch (err) {
     if (err.name === 'AbortError') return;
     status.textContent = `這次沒拿到 Fable 的解讀（${err.message}）。上面的解讀仍然可以參考。`;
