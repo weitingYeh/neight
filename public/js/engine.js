@@ -10,10 +10,10 @@ const RANK_THEMES = {
 };
 
 const MISSING_ADVICE = {
-  fire: '火元素沒有出場，少的是一把推力。與其等到有把握，不如先挑一件小事動手。',
-  water: '水元素沒有出場，感受這一塊被擱著了。做決定之前，先問問自己心裡真正的感覺。',
-  air: '風元素沒有出場，少的是把話講開、把事想透。找個人談談，或把想法寫下來。',
-  earth: '土元素沒有出場，事情還飄在半空。替它定一個日期、一筆預算，或一個看得見的步驟。',
+  fire: '火元素這次沒有出場。不必等到有十足把握，先挑一件小小的事動手，推力會跟著來。',
+  water: '水元素這次沒有出場。做決定之前，記得問問自己心裡真正的感覺，它也想被聽見。',
+  air: '風元素這次沒有出場。找個信得過的人聊聊，或把想法寫下來，事情會清楚許多。',
+  earth: '土元素這次沒有出場。替這件事定一個日期，或一個看得見的小步驟，它就會落地。',
 };
 
 export function relation(a, b) {
@@ -71,13 +71,13 @@ export function analyze(placed) {
 function overview(a) {
   const out = [];
   if (a.majors === a.total) {
-    out.push('三張全是大阿爾克那。這件事的份量不輕，牽動的是人生階段層級的課題，有些力量不全由你掌控。');
+    out.push('三張全是大阿爾克那。這件事對你很重要，它連著人生的一個大章節；有些部分不由你掌控，你只需要照顧好自己能做的那一塊。');
   } else if (a.majors === 2) {
     out.push('三張裡有兩張大牌，表示這件事背後有比日常瑣事更大的主題在推動。');
   } else if (a.majors === 1) {
     out.push('三張裡有一張大牌，它是整副牌的重心，另外兩張小牌描述的是它在日常裡的樣子。');
   } else {
-    out.push('三張都是小牌。答案多半不在什麼命運的大轉折，而在你接下來幾個務實的動作裡。');
+    out.push('三張都是小牌。這是好消息：事情沒有那麼沉重，鑰匙就在你接下來幾個小小的動作裡。');
   }
 
   if (a.dominant.length) {
@@ -89,9 +89,9 @@ function overview(a) {
   }
 
   if (a.reversed === a.total) {
-    out.push('三張都是逆位，能量普遍受阻或轉向內在，現在比較適合整理，不適合硬推。');
+    out.push('三張都是逆位，表示這陣子的力氣比較適合往內收。先把自己安頓好，再出發一點也不遲。');
   } else if (a.reversed === 2) {
-    out.push('逆位佔了兩張，有不少力氣悶在裡面還沒流出來。');
+    out.push('逆位佔了兩張，有些力氣還悶在心裡沒流出來。慢慢來，它們會找到出口。');
   }
 
   if (a.courts >= 2) {
@@ -115,9 +115,9 @@ function pairSentence(placed, pair) {
     case 'friendly':
       return `${names}的元素彼此助長，${x.position.zh}的狀態會順勢把${y.position.zh}往前推。`;
     case 'hostile':
-      return `${names}的元素互相牽制，${x.position.zh}和${y.position.zh}之間有一股拉扯，兩邊都使不出全力。`;
+      return `${names}的元素有些拉扯，${x.position.zh}和${y.position.zh}之間需要一點磨合。會拉扯，是因為兩邊你都在乎，輪流照顧就好。`;
     default:
-      return `${names}的元素各走各的，${x.position.zh}和${y.position.zh}之間沒有明顯的助力或阻力。`;
+      return `${names}的元素各走各的，${x.position.zh}和${y.position.zh}互不干擾，你可以分開來處理。`;
   }
 }
 
@@ -126,13 +126,13 @@ function centerSentence(placed, a) {
   const mid = placed[1];
   const good = (r) => r === 'friendly' || r === 'same';
   if (good(left) && good(right)) {
-    return `夾在中間的「${mid.card.zh}」兩邊都得到支持，它在這副牌裡說話最大聲。`;
+    return `中間的「${mid.card.zh}」兩邊都有支持，它是這副牌裡最有力的聲音。`;
   }
   if (left === 'hostile' && right === 'hostile') {
-    return `夾在中間的「${mid.card.zh}」兩邊都受到牽制，它的力量打了折扣，牌義要讀得輕一些。`;
+    return `中間的「${mid.card.zh}」兩邊都有些拉扯，它說的話可以聽得輕一點，不必太放在心上。`;
   }
   if (left === 'hostile' || right === 'hostile') {
-    return `夾在中間的「${mid.card.zh}」一邊受助、一邊受阻，力道並不完整。`;
+    return `中間的「${mid.card.zh}」一邊有助力、一邊要磨合，慢慢來就好。`;
   }
   return '';
 }
@@ -142,18 +142,33 @@ function closing(placed, a, spreadKey) {
   const last = placed[placed.length - 1];
   if (spreadKey === 'time') {
     out.push(last.reversed
-      ? `未來位落在逆位的「${last.card.zh}」，這是照目前走勢推出來的樣子，並非定局；它提醒的是哪裡需要調整。`
-      : `未來位落在「${last.card.zh}」，這是照目前走勢推出來的樣子，並非定局。`);
+      ? `未來位是逆位的「${last.card.zh}」。未來還沒寫定，這張牌是在溫柔地提醒你哪裡可以先調整。`
+      : `未來位是「${last.card.zh}」。這是順著現在的步伐會走到的地方，筆還在你手上，隨時可以改寫。`);
   } else {
-    out.push(`建議位的「${last.card.zh}」${last.reversed ? '是逆位，重點在於先鬆開它所指的那個結' : '指出了可以著力的方向'}。`);
+    out.push(`建議位的「${last.card.zh}」${last.reversed ? '是逆位，它請你先溫柔地鬆開心裡的那個結' : '替你指了一個可以使力的方向'}。`);
   }
   if (a.missing.length === 1) {
     out.push(MISSING_ADVICE[a.missing[0]]);
   } else if (a.missing.length >= 2) {
     const zh = a.missing.map((m) => ELEMENTS[m].zh).join('、');
-    out.push(`${zh}元素都沒有出場。這副牌的力量集中在一處，缺席的那幾塊（${a.missing.map((m) => ELEMENTS[m].theme.split('、')[0]).join('、')}）值得你刻意補上。`);
+    out.push(`${zh}元素這次都沒有出場。你的力量很集中，這是優點；有空時也照顧一下${a.missing.map((m) => ELEMENTS[m].theme.split('、')[0]).join('和')}這幾塊，會走得更穩。`);
   }
   return out.join('');
+}
+
+// 收尾的一句話：依這副牌最明顯的特徵挑
+function blessing(placed, a) {
+  const last = placed[placed.length - 1];
+  if (a.reversed === a.total) return '現在慢一點沒有關係。把自己照顧好，就是在往前走。';
+  if (a.majors >= 2) return '你正走過人生裡很重要的一段。不用一次想通，一步一步來，你做得到。';
+  if (!last.reversed && ['major-17', 'major-19', 'major-21', 'cups-9', 'cups-10', 'wands-6'].includes(last.card.id)) {
+    return '好事正在靠近。放心往前走，把這份期待帶在身上。';
+  }
+  if (a.dominant.includes('water')) return '你的感受很珍貴。溫柔地對待自己，答案會慢慢浮上來。';
+  if (a.dominant.includes('fire')) return '你心裡有火。護好它，往真正想去的地方走。';
+  if (a.dominant.includes('air')) return '想清楚的那一刻會來的。在那之前，容許自己還不確定。';
+  if (a.dominant.includes('earth')) return '你一步一步踩得很實。這樣的累積不會辜負你。';
+  return '無論牌面怎麼說，選擇一直在你手上。今天的你，已經很努力了。';
 }
 
 // 規則引擎的完整解讀，回傳分段結構
@@ -173,6 +188,7 @@ export function ruleReading(placed, spreadKey) {
     positions,
     links: links.join(''),
     closing: closing(placed, a, spreadKey),
+    blessing: blessing(placed, a),
   };
 }
 

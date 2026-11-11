@@ -9,7 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232c3550'/%3E%3Cpath d='M16 5l2.6 8.4L27 16l-8.4 2.6L16 27l-2.6-8.4L5 16l8.4-2.6z' fill='%23b38a3a'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;500;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -25,7 +25,7 @@
         <path class="dot" d="M112 3l2.2 6.8L121 12l-6.8 2.2L112 21l-2.2-6.8L103 12l6.8-2.2z"/>
         <circle class="dot" cx="4" cy="12" r="1.6"/><circle class="dot" cx="220" cy="12" r="1.6"/>
       </svg>
-      <p class="masthead__sub">寫下一個問題，抽三張牌，慢慢讀。</p>
+      <p class="masthead__sub">把心裡的事寫下來，抽三張牌，<br>讓它們陪你慢慢想。</p>
     </header>
 
     <!-- 第一步：提問 -->
@@ -33,7 +33,7 @@
       <div class="step__head"><span class="step__no">一</span><h2>想問什麼</h2></div>
       <div class="sheet">
         <label class="field">
-          <span class="field__label">把問題寫下來。問得越具體，牌越好讀。</span>
+          <span class="field__label">最近心裡在想什麼？寫下來就好，不用寫得很完整。</span>
           <textarea id="question" rows="3" maxlength="200" placeholder="例如：我該不該接下這份新工作？"></textarea>
         </label>
 
@@ -41,11 +41,11 @@
           <legend>三張牌要怎麼讀</legend>
           <label class="choice">
             <input type="radio" name="spread" value="time" checked>
-            <span class="choice__body"><strong>時間之流</strong><em>過去・現在・未來</em><small>想看一件事怎麼走到現在、又會往哪裡去。</small></span>
+            <span class="choice__body"><strong>時間之流</strong><em>過去・現在・未來</em><small>看看這件事一路怎麼走來，接下來會往哪裡去。</small></span>
           </label>
           <label class="choice">
             <input type="radio" name="spread" value="insight">
-            <span class="choice__body"><strong>問題解析</strong><em>狀況・癥結・建議</em><small>想弄清楚卡在哪裡、接下來能怎麼做。</small></span>
+            <span class="choice__body"><strong>問題解析</strong><em>狀況・癥結・建議</em><small>看看是什麼讓你停下來，還有可以怎麼往前。</small></span>
           </label>
         </fieldset>
 
@@ -69,10 +69,13 @@
 
     <!-- 第三步：解讀 -->
     <section class="step" id="step-read" hidden>
-      <div class="step__head"><span class="step__no">三</span><h2>牌面</h2></div>
+      <div class="step__head"><span class="step__no">三</span><h2>翻開你的牌</h2></div>
       <blockquote class="asked narrow" id="asked"></blockquote>
-      <div class="spread" id="spread"></div>
-      <div class="actions"><button class="btn" id="btn-reveal" type="button">翻牌</button></div>
+      <div class="table" id="table">
+        <div class="spread" id="spread"></div>
+        <p class="table__hint" id="reveal-hint" aria-live="polite"></p>
+      </div>
+      <div class="actions"><button class="cue" id="scroll-cue" type="button" hidden>往下讀解讀<span aria-hidden="true">↓</span></button></div>
 
       <div class="narrow" id="reading" hidden>
         <section class="block">
@@ -94,12 +97,16 @@
           <p class="note" id="ai-status" aria-live="polite"></p>
           <div class="ai-text" id="ai-text"></div>
         </section>
-        <p class="disclaimer">塔羅是整理思緒的工具，不是預言。健康、法律與財務上的重大決定，請找專業的人談。</p>
+        <aside class="blessing">
+          <span class="blessing__label">給你的一句話</span>
+          <p id="blessing"></p>
+        </aside>
+        <p class="disclaimer">塔羅是陪你整理思緒的工具，不是預言，未來一直在你手上。<br>健康、法律與財務上的重大決定，記得找專業的人聊聊。</p>
         <div class="actions"><button class="btn btn--quiet" id="btn-again" type="button">再問一個問題</button></div>
       </div>
     </section>
 
-    <footer class="colophon">牌面為原創線稿<br>解牌依據：整體印象・大小牌比例・元素過與不及・相鄰元素生剋・逆位</footer>
+    <footer class="colophon">牌面為原創線稿<br>願你讀完之後，心裡輕一點。</footer>
   </main>
   <script type="module" src="js/app.js"></script>
 </body>
