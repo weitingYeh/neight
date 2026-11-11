@@ -127,30 +127,26 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .btn--quiet:hover { background: transparent; color: var(--seal); border-color: var(--seal); box-shadow: none; }
 
 /* ── 牌面 SVG ── */
-.card-art { display: block; width: 100%; height: auto; fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; --el: var(--seal); }
-.card-art.el-fire { --el: var(--fire); }
-.card-art.el-water { --el: var(--water); }
-.card-art.el-air { --el: var(--air); }
-.card-art.el-earth { --el: var(--earth); }
-.card-art .paper { fill: var(--card); }
-.card-art .wash { fill: var(--el); fill-opacity: 0.06; stroke: none; }
-.card-art .window { fill: var(--el); fill-opacity: 0.1; stroke: none; }
-.card-art .rim { fill: none; stroke: var(--ink); stroke-width: 1.2; }
-.card-art .skin { fill: var(--card); }
-.card-art .deep { fill: var(--el); fill-opacity: 0.62; }
-.card-art .limb { stroke-width: 2.6; fill: none; }
-.card-art { stroke-width: 1.1; }
-.card-art .soft { fill: var(--el); fill-opacity: 0.24; }
-.card-art .hair { stroke-width: 0.6; }
-.card-art .tint { stroke: var(--el); }
-.card-art .fill { fill: var(--el); stroke: none; }
-.card-art .accent { stroke: var(--el); stroke-width: 2; }
-.card-art text { fill: var(--ink); stroke: none; font-family: var(--serif); text-anchor: middle; }
-.card-art .name { font-size: 12.5px; font-weight: 700; letter-spacing: 1px; }
-.card-art .en { font-family: var(--latin); font-size: 6.2px; font-weight: 600; letter-spacing: 0.5px; fill: var(--ink-soft); }
-.card-art .numeral { font-family: var(--latin); font-size: 12px; font-weight: 700; letter-spacing: 2px; fill: var(--el); }
-.card-art .corner { font-family: var(--latin); font-size: 11px; font-weight: 700; fill: var(--el); }
-
+.card-art { display: block; width: 100%; height: auto; fill: none; stroke: #ecd08a; stroke-width: 0.7; stroke-linecap: round; stroke-linejoin: round; }
+.card-art .paper { fill: #171329; stroke: #ecd08a; stroke-width: 1; }
+.card-art .rim { fill: none; stroke: #ecd08a; stroke-width: 1; }
+.card-art .skin { fill: #fff4d6; fill-opacity: 0.95; stroke-width: 0.4; }
+.card-art .deep { fill: #140e26; fill-opacity: 0.88; stroke-width: 0.5; }
+.card-art .soft { fill: #fff4d6; fill-opacity: 0.2; }
+.card-art .land { fill: #120c22; fill-opacity: 0.66; stroke: none; }
+.card-art .veil { fill: #fff4d6; fill-opacity: 0.16; stroke: none; }
+.card-art .shade { fill: #120c22; fill-opacity: 0.5; stroke: none; }
+.card-art .mist { fill: #fff4d6; fill-opacity: 0.6; stroke: none; }
+.card-art .gilt, .card-art .fill { fill: #f5d98f; stroke: none; }
+.card-art .stars { fill: #fff4d6; stroke: none; }
+.card-art .hair { stroke-width: 0.4; stroke-opacity: 0.85; }
+.card-art .tint { stroke: #ffe9b0; stroke-opacity: 0.75; }
+.card-art .accent { stroke: #ffdf9a; stroke-width: 1.3; }
+.card-art .limb { stroke: #fff4d6; stroke-width: 1.9; fill: none; }
+.card-art text { stroke: none; font-family: var(--serif); text-anchor: middle; }
+.card-art .name { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; fill: #fff4d6; }
+.card-art .en { font-family: var(--latin); font-size: 5.2px; font-weight: 600; letter-spacing: 1.2px; fill: #d9bf7c; }
+.card-art .numeral { font-family: var(--latin); font-size: 11px; font-weight: 700; letter-spacing: 2px; fill: #ecd08a; }
 .card-back { display: block; width: 100%; height: auto; }
 
 /* ── 選牌：洗牌、攤成弧形、滑過浮起 ── */
