@@ -118,26 +118,26 @@ async function startPick() {
 
   // 洗牌：分成兩疊，再交錯疊回去，來回三次
   const side = L.w * 0.72;
-  for (let round = 0; round < 3 && !REDUCED; round += 1) {
+  for (let round = 0; round < 1 && !REDUCED; round += 1) {
     state.cards.forEach((card, i) => {
       const left = (i + round) % 2 === 0;
       place(card, { x: left ? -side : side, y: L.stackY - i * 0.12, r: left ? -7 : 7, dur: 260, delay: (i % 6) * 6 });
     });
     whoosh(0.22, 0.12, true);
-    await sleep(330);
+    await sleep(240);
     if (!alive()) return;
     for (let k = 0; k < 7; k += 1) setTimeout(() => tick(k % 3, 0.16), k * 34);
     state.cards.forEach((card, i) => {
       place(card, { x: (i % 3) - 1, y: L.stackY - i * 0.12, r: 0, dur: 240, delay: (i / state.cards.length) * 200 });
     });
-    await sleep(470);
+    await sleep(330);
     if (!alive()) return;
   }
 
   // 攤成扇形
-  state.cards.forEach((card, i) => place(card, { ...L.slots[i], dur: 620, delay: i * 11 }));
-  for (let k = 0; k < 26 && !REDUCED; k += 1) setTimeout(() => tick(k % 4, 0.1), k * 33);
-  await sleep(state.cards.length * 11 + 640);
+  state.cards.forEach((card, i) => place(card, { ...L.slots[i], dur: 460, delay: i * 5 }));
+  for (let k = 0; k < 14 && !REDUCED; k += 1) setTimeout(() => tick(k % 4, 0.1), k * 30);
+  await sleep(state.cards.length * 5 + 480);
   if (!alive()) return;
   state.cards.forEach((card) => {
     card.style.setProperty('--delay', '0ms');
@@ -152,7 +152,7 @@ function updatePickHint(override) {
   const spread = SPREADS[state.spreadKey];
   const next = spread.positions[state.draws.length];
   $('pick-hint').textContent = override
-    || (next ? `手指或滑鼠滑過牌面，停在有感覺的那張，放開就抽出「${next.zh}」。` : '三張都抽好了。');
+    || (next ? `滑過牌面，停在有感覺的那張就放開。現在選「${next.zh}」。` : '三張都抽好了。');
   const picked = $('picked');
   if (picked.children.length !== spread.positions.length) {
     picked.replaceChildren(...spread.positions.map((pos) => {
@@ -372,7 +372,7 @@ const sealStage = $('seal-stage');
   document.querySelector('.seal__inner').innerHTML = `<svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="70" stroke-dasharray="3 6"/><circle cx="100" cy="100" r="58"/><polygon points="100,44 148.5,128 51.5,128"/><polygon points="100,156 51.5,72 148.5,72"/>${runes}</svg>`;
 }());
 
-function sealRitual(positionName) {
+function sealRitual() {
   return new Promise((resolve) => {
     let step = 0;
     let travel = 0;
@@ -389,7 +389,7 @@ function sealRitual(positionName) {
     sealEl.style.setProperty('--rot', '0deg');
     gems.forEach((g) => g.classList.remove('is-on'));
     $('seal-count').textContent = `0 / ${NOTCHES}`;
-    $('seal-hint').textContent = `按住畫面拖動，轉開「${positionName}」的封印`;
+    $('seal-hint').textContent = '按住畫面拖動，轉開三張牌的封印';
     requestAnimationFrame(() => sealEl.classList.add('is-in'));
     whoosh(0.4, 0.2, true);
     sealStage.focus({ preventScroll: true });
@@ -482,7 +482,7 @@ async function pick(index) {
   if (!state.ready || !card || card.dataset.gone || state.draws.length >= spread.positions.length) return;
   const run = state.run;
   const order = state.draws.length;
-  state.ready = false;
+  state.draws.push(state.pile[index]);
   card.dataset.gone = '1';
   card.tabIndex = -1;
   card.dataset.order = order;
@@ -491,35 +491,23 @@ async function pick(index) {
   card.style.setProperty('--lift', 0);
   card.style.zIndex = 200 + order;
   setFocus(-1);
-
-  // 先從牌扇裡抽起來，再進入封印
-  const from = state.layout.slots[index];
-  place(card, { x: from.x, y: from.y - state.layout.h * 0.6, r: from.r * 0.3, s: 1.15, dur: 260 });
-  tick(1, 0.3);
-  await sleep(260);
-  card.classList.add('is-sealed');
-  await sealRitual(spread.positions[order].zh);
-  if (run !== state.run) return;
-
-  state.draws.push(state.pile[index]);
-  card.classList.remove('is-sealed');
-  place(card, { ...slotTarget(order), dur: 520 });
-  whoosh(0.3, 0.14, false);
+  place(card, { ...slotTarget(order), dur: 380 });
+  tick(order + 1, 0.4);
+  buzz(12);
   updatePickHint();
-  await sleep(540);
-  if (run !== state.run) return;
+  if (state.draws.length < spread.positions.length) return;
 
-  if (state.draws.length < spread.positions.length) { state.ready = true; return; }
-  await sleep(300);
-  // 剩下的牌收回一疊，退場
+  // 三張到齊：其餘的牌退場，三張一起進封印，轉開後直接上桌
+  state.ready = false;
   const L = state.layout;
   state.cards.forEach((other, i) => {
     if (other.dataset.gone) return;
-    place(other, { x: 0, y: L.stackY, r: 0, dur: 420, delay: (i % 13) * 14 });
+    place(other, { x: 0, y: L.stackY, r: 0, dur: 300, delay: (i % 13) * 8 });
     other.classList.add('is-leaving');
   });
-  whoosh(0.5, 0.16, false);
-  await sleep(720);
+  await sleep(420);
+  if (run !== state.run) return;
+  await sealRitual();
   if (run !== state.run) return;
   renderSpread();
 }

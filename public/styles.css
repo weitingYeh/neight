@@ -127,28 +127,27 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .btn--quiet:hover { background: transparent; color: var(--seal); border-color: var(--seal); box-shadow: none; }
 
 /* ── 牌面 SVG ── */
-/* 牌面：扁平的幾何色塊，只用黑、金、米白三色，再加一點朱紅 */
-.card-art { display: block; width: 100%; height: auto; fill: none; stroke: #1b1a18; stroke-width: 1.15; stroke-linecap: round; stroke-linejoin: round; }
-.card-art .paper { fill: #c4a25f; stroke: none; }
-.card-art .panel { fill: #f6f1e4; stroke: none; }
-.card-art .scene { fill: #f6f1e4; stroke: none; }
-.card-art .skin { fill: #fffdf6; stroke-width: 0.8; }
-.card-art .deep { fill: #1b1a18; stroke: none; }
-.card-art .soft { fill: #c9a561; stroke: none; }
-.card-art .land { fill: #dcc594; stroke: none; }
-.card-art .veil { fill: #ebe1c6; stroke: none; }
-.card-art .shade { fill: #1b1a18; fill-opacity: 0.08; stroke: none; }
-.card-art .mist { fill: #fffdf6; stroke-width: 0.8; }
+/* 牌面：細墨線畫在米白紙上，只在小地方點金 */
+.card-art { display: block; width: 100%; height: auto; fill: none; stroke: #23211e; stroke-width: 0.8; stroke-linecap: round; stroke-linejoin: round; }
+.card-art .paper { fill: #f7f2e6; stroke: #23211e; stroke-width: 0.9; }
+.card-art .panel { fill: none; stroke: #b98f3e; stroke-width: 0.5; }
+.card-art .scene { fill: none; stroke: none; }
+.card-art .skin, .card-art .soft, .card-art .mist { fill: #f7f2e6; }
+.card-art .deep { fill: #23211e; stroke: none; }
+.card-art .land { fill: #efe7d2; stroke: none; }
+.card-art .veil { fill: #f1ead7; stroke: none; }
+.card-art .shade { fill: none; stroke: none; }
 .card-art .gilt, .card-art .fill { fill: #b98f3e; stroke: none; }
-.card-art .stars { fill: #c9a561; stroke: none; }
-.card-art .hair { stroke-width: 0.6; }
+.card-art .stars { fill: #b98f3e; stroke: none; }
+.card-art .hair { stroke-width: 0.45; }
+.card-art .hair.light { stroke: #f7f2e6; }
 .card-art .tint { stroke: #b98f3e; }
-.card-art .accent { stroke: #c8402f; stroke-width: 1.5; }
-.card-art .limb { stroke-width: 1.6; }
+.card-art .accent { stroke: #b98f3e; stroke-width: 1.1; }
+.card-art .limb { stroke-width: 0.8; }
 .card-art text { stroke: none; font-family: var(--serif); text-anchor: middle; }
-.card-art .name { font-size: 12.5px; font-weight: 800; letter-spacing: 1.5px; fill: #1b1a18; }
-.card-art .en { font-family: var(--latin); font-size: 5.4px; font-weight: 700; letter-spacing: 1.1px; fill: #c8402f; }
-.card-art .numeral { font-family: var(--latin); font-size: 12px; font-weight: 700; letter-spacing: 2px; fill: #1b1a18; }
+.card-art .name { font-size: 11.5px; font-weight: 700; letter-spacing: 2.5px; fill: #23211e; }
+.card-art .en { font-family: var(--latin); font-size: 5px; font-weight: 600; letter-spacing: 1.4px; fill: #9a7a3a; }
+.card-art .numeral { font-family: var(--latin); font-size: 10.5px; font-weight: 600; letter-spacing: 2.5px; fill: #23211e; }
 .card-back { display: block; width: 100%; height: auto; }
 
 /* ── 選牌：洗牌、攤成弧形、滑過浮起 ── */
@@ -355,7 +354,7 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .seal__gem path { fill: #2b3350; stroke: #e7c36a; stroke-width: 1.6; transition: fill 0.12s; }
 .seal__gem.is-on path { fill: #ffe9a6; filter: drop-shadow(0 0 5px #ffd76a); }
 
-.seal__card { position: absolute; left: 50%; top: 50%; width: 34%; aspect-ratio: 120 / 200; border-radius: 6% / 3.6%; overflow: hidden;
+.seal__card { position: absolute; left: 50%; top: 50%; width: 30%; aspect-ratio: 120 / 200; border-radius: 6% / 3.6%;
   background: var(--card-back) center / 100% 100% no-repeat;
   transform: translate(-50%, -50%) scale(calc(0.9 + var(--p) * 0.22));
   transition: transform 0.16s cubic-bezier(0.3, 2.2, 0.5, 1);
@@ -399,3 +398,9 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .flip__pillar { position: absolute; left: 50%; top: 50%; width: 120%; height: 420%; transform: translate(-50%, -50%) scaleX(0); opacity: 0; pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(255, 233, 166, 0.5) 30%, #fff 50%, rgba(255, 233, 166, 0.5) 70%, transparent); }
 .flip--legend.is-bursting .flip__pillar { animation: beam 0.9s ease-out; }
+
+/* 封印裡是三張牌：中間一張，左右各一張斜靠在後面 */
+.seal__card::before, .seal__card::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; background: var(--card-back) center / 100% 100% no-repeat; box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45); transition: transform 0.16s cubic-bezier(0.3, 2.2, 0.5, 1); }
+.seal__card::before { transform: translateX(calc(-58% - var(--p) * 8%)) rotate(calc(-12deg - var(--p) * 5deg)); }
+.seal__card::after { transform: translateX(calc(58% + var(--p) * 8%)) rotate(calc(12deg + var(--p) * 5deg)); }
+.seal__crack { border-radius: inherit; }
