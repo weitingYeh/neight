@@ -47,11 +47,16 @@ const lemniscate = (cx, cy, s = 1) => `<path d="M${cx} ${cy}c${-4 * s}${-5 * s}$
 // ── 人物與景物的零件 ──
 // 畫風：暮色天空上的鎏金細線；人物是帶垂墜弧線的長袍剪影，臉與手臂受光。
 // 人物的畫法：細線、修長的比例、沒有五官；長袍與袖子用長弧線畫出垂墜感。
+// 頭：披著頭紗，紗從頭頂垂到肩外；臉在紗的開口裡，額前一道金色額飾
 const head = (x, y, r = 5) => {
-  const rx = r * 0.74; const ry = r * 0.96;
-  return `<path d="M${f(x - r * 0.26)} ${f(y + ry * 0.8)}v${f(r * 0.9)}M${f(x + r * 0.26)} ${f(y + ry * 0.8)}v${f(r * 0.9)}" class="hair"/>`
-    + `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(rx)}" ry="${f(ry)}" class="skin"/>`
-    + `<path d="M${f(x - rx)} ${f(y - ry * 0.05)}a${f(rx)} ${f(ry)} 0 0 1 ${f(rx * 2)} 0q${f(-rx * 0.5)} ${f(-ry * 0.55)} ${f(-rx)} ${f(-ry * 0.5)}t${f(-rx)} ${f(ry * 0.5)}z" class="deep"/>`;
+  const top = y - r * 1.3;
+  const veil = `M${f(x)} ${f(top)}C${f(x + r * 1.5)} ${f(top)} ${f(x + r * 1.2)} ${f(y + r * 1.3)} ${f(x + r * 2.2)} ${f(y + r * 3)}`
+    + `Q${f(x + r * 1.1)} ${f(y + r * 2.5)} ${f(x)} ${f(y + r * 2.7)}Q${f(x - r * 1.1)} ${f(y + r * 2.5)} ${f(x - r * 2.2)} ${f(y + r * 3)}`
+    + `C${f(x - r * 1.2)} ${f(y + r * 1.3)} ${f(x - r * 1.5)} ${f(top)} ${f(x)} ${f(top)}z`;
+  return `<path d="${veil}" class="skin"/>`
+    + `<path d="M${f(x - r * 0.95)} ${f(y + r * 0.9)}Q${f(x - r * 1.1)} ${f(y + r * 1.9)} ${f(x - r * 1.6)} ${f(y + r * 2.8)}M${f(x + r * 0.95)} ${f(y + r * 0.9)}Q${f(x + r * 1.1)} ${f(y + r * 1.9)} ${f(x + r * 1.6)} ${f(y + r * 2.8)}M${f(x - r * 0.3)} ${f(y + r * 1.4)}Q${f(x)} ${f(y + r * 2)} ${f(x + r * 0.3)} ${f(y + r * 1.4)}" class="hair"/>`
+    + `<path d="M${f(x - r * 0.62)} ${f(y - r * 0.2)}C${f(x - r * 0.62)} ${f(y - r * 1.05)} ${f(x + r * 0.62)} ${f(y - r * 1.05)} ${f(x + r * 0.62)} ${f(y - r * 0.2)}C${f(x + r * 0.6)} ${f(y + r * 0.75)} ${f(x + r * 0.2)} ${f(y + r * 1.1)} ${f(x)} ${f(y + r * 1.1)}C${f(x - r * 0.2)} ${f(y + r * 1.1)} ${f(x - r * 0.6)} ${f(y + r * 0.75)} ${f(x - r * 0.62)} ${f(y - r * 0.2)}z" class="face"/>`
+    + `<path d="M${f(x - r * 0.6)} ${f(y - r * 0.38)}Q${f(x)} ${f(y - r * 0.02)} ${f(x + r * 0.6)} ${f(y - r * 0.38)}" class="tint"/><circle cx="${f(x)}" cy="${f(y - r * 0.1)}" r="${f(Math.max(0.6, r * 0.14))}" class="fill"/>`;
 };
 
 // 長袍：窄肩、收腰、下襬外展，裡面有幾道長長的衣褶
@@ -95,16 +100,17 @@ const peaks = (y) => `<path d="M14 ${y}l12-20 9 12 10-24 12 22 9-12 12 18 10-16 
 
 // 站立的人：x 是身體中線，foot 是腳底，h 是身高（約八頭身）。l / r 是雙手相對肩膀的位移。
 function person(x, foot, h, { cls = 'soft', l, r, hair = false } = {}) {
-  const hr = h * 0.062;
+  const hr = h * 0.068;
   const hy = foot - h + hr;
   const sy = hy + hr * 1.9;
   const w1 = h * 0.17;
   const w2 = h * 0.34;
   const la = l || [-2.5, h * 0.33];
   const ra = r || [2.5, h * 0.33];
+  // hair 為 true 的人物，頭紗一路垂到腰後
   const locks = hair
-    ? `<path d="M${f(x - hr * 0.8)} ${f(hy - hr * 0.2)}C${f(x - hr * 2)} ${f(hy + hr * 2)} ${f(x - w1 * 0.62)} ${f(sy + h * 0.04)} ${f(x - w1 * 0.5)} ${f(sy + h * 0.2)}L${f(x + w1 * 0.5)} ${f(sy + h * 0.2)}C${f(x + w1 * 0.62)} ${f(sy + h * 0.04)} ${f(x + hr * 2)} ${f(hy + hr * 2)} ${f(x + hr * 0.8)} ${f(hy - hr * 0.2)}z" class="deep"/>`
-    : `<circle cx="${f(x)}" cy="${f(hy - hr * 1.15)}" r="${f(hr * 0.42)}" class="deep"/>`;
+    ? `<path d="M${f(x - hr * 1.2)} ${f(hy)}C${f(x - hr * 2.6)} ${f(hy + hr * 3)} ${f(x - w1 * 0.9)} ${f(sy + h * 0.16)} ${f(x - w1 * 1.05)} ${f(sy + h * 0.36)}Q${f(x)} ${f(sy + h * 0.3)} ${f(x + w1 * 1.05)} ${f(sy + h * 0.36)}C${f(x + w1 * 0.9)} ${f(sy + h * 0.16)} ${f(x + hr * 2.6)} ${f(hy + hr * 3)} ${f(x + hr * 1.2)} ${f(hy)}z" class="skin"/>`
+    : '';
   return locks
     + robe(x, sy, w1, w2, foot - sy, cls)
     + arm(x - w1 / 2 + 0.6, sy + 2.2, x - w1 / 2 + la[0], sy + la[1], cls)
@@ -227,8 +233,8 @@ const SCENES = [
     + `<path d="M54 70a6 4 0 0 1 12 0zM55 64a5 3.4 0 0 1 10 0zM56.5 59a3.5 2.6 0 0 1 7 0z" class="skin"/><path d="M60 56v-4M58 54h4" class="hair"/>`
     + `<path d="M60 86v24M56 92h8" class="hair"/>`
     + `<path d="M80 52v86M74 60h12M72 68h16M70 76h20"/>`
-    + `<path d="M26 154v-10q0-8 10-8t10 8v10z" class="soft"/><circle cx="36" cy="130" r="5" class="skin"/><path d="M32 128q4-4 8 0" class="hair"/>`
-    + `<path d="M74 154v-10q0-8 10-8t10 8v10z" class="skin"/><circle cx="84" cy="130" r="5" class="skin"/><path d="M80 128q4-4 8 0" class="hair"/>`
+    + `<path d="M26 154v-10q0-8 10-8t10 8v10z" class="soft"/>${head(36, 131, 4)}`
+    + `<path d="M74 154v-10q0-8 10-8t10 8v10z" class="skin"/>${head(84, 131, 4)}`
     + `<path d="M52 152l16-12M68 152l-16-12"/><circle cx="51" cy="153" r="2" class="skin"/><circle cx="69" cy="153" r="2" class="skin"/>`,
   // 6 戀人
   () => `${sun(60, 46, 9, 16)}${wings(60, 72, 34, 'deep')}`

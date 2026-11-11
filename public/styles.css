@@ -134,6 +134,7 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .card-art .scene { fill: none; stroke: none; }
 .card-art .skin, .card-art .soft, .card-art .mist { fill: #f7f2e6; }
 .card-art .deep { fill: #23211e; stroke: none; }
+.card-art .face { fill: #e7d6b4; stroke-width: 0.5; }
 .card-art .land { fill: #efe7d2; stroke: none; }
 .card-art .veil { fill: #f1ead7; stroke: none; }
 .card-art .shade { fill: none; stroke: none; }
@@ -324,7 +325,7 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .labelled { margin-top: 0.7rem; }
 .labelled b { display: inline-block; margin-right: 0.6rem; padding: 0 0.6rem; border-radius: 999px; background: rgba(176, 73, 47, 0.1); color: var(--seal); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.08em; line-height: 1.7; vertical-align: 0.08em; }
 #between .labelled { margin-top: 1.1rem; }
-#between .labelled:last-child { padding: 1rem 1.2rem; background: var(--card); border: 1px solid var(--rule); border-radius: 14px; }
+
 .position { grid-template-columns: 5.5rem 1fr; }
 @media (max-width: 40rem) { .position { grid-template-columns: 1fr; } .position__thumb { width: 6.5rem; margin: 0 auto; } }
 
@@ -404,3 +405,10 @@ textarea:focus { outline: none; background-image: linear-gradient(to bottom, tra
 .seal__card::before { transform: translateX(calc(-58% - var(--p) * 8%)) rotate(calc(-12deg - var(--p) * 5deg)); }
 .seal__card::after { transform: translateX(calc(58% + var(--p) * 8%)) rotate(calc(12deg + var(--p) * 5deg)); }
 .seal__crack { border-radius: inherit; }
+
+/* ── 結語 ── */
+.conclusion { padding: 0.4rem 1.3rem 1.2rem; background: var(--card); border: 1px solid var(--rule); border-radius: 16px; box-shadow: var(--shadow); }
+.conclusion .labelled { margin-top: 0.9rem; }
+.conclusion ol { margin: 0.5rem 0 0; padding-left: 1.4rem; }
+.conclusion li { margin-top: 0.3rem; }
+.conclusion li::marker { color: var(--seal); font-weight: 700; }
