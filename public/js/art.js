@@ -81,16 +81,16 @@ const SUIT_GLYPH = {
 
 // 數字牌的排列位置（1–10）
 const PIP_LAYOUTS = {
-  1: [[60, 100]],
-  2: [[60, 66], [60, 134]],
-  3: [[60, 60], [60, 100], [60, 140]],
-  4: [[42, 68], [78, 68], [42, 132], [78, 132]],
-  5: [[42, 64], [78, 64], [60, 100], [42, 136], [78, 136]],
-  6: [[42, 60], [78, 60], [42, 100], [78, 100], [42, 140], [78, 140]],
-  7: [[42, 58], [78, 58], [60, 79], [42, 100], [78, 100], [42, 142], [78, 142]],
-  8: [[42, 56], [78, 56], [60, 76], [42, 96], [78, 96], [60, 118], [42, 140], [78, 140]],
-  9: [[40, 56], [80, 56], [40, 84], [80, 84], [60, 100], [40, 116], [80, 116], [40, 144], [80, 144]],
-  10: [[40, 54], [80, 54], [60, 68], [40, 84], [80, 84], [40, 116], [80, 116], [60, 132], [40, 146], [80, 146]],
+  1: [[60, 94]],
+  2: [[60, 60], [60, 128]],
+  3: [[60, 50], [60, 88], [60, 126]],
+  4: [[42, 62], [78, 62], [42, 126], [78, 126]],
+  5: [[42, 58], [78, 58], [60, 94], [42, 130], [78, 130]],
+  6: [[42, 54], [78, 54], [42, 94], [78, 94], [42, 134], [78, 134]],
+  7: [[42, 52], [78, 52], [60, 73], [42, 94], [78, 94], [42, 136], [78, 136]],
+  8: [[42, 50], [78, 50], [60, 70], [42, 90], [78, 90], [60, 112], [42, 134], [78, 134]],
+  9: [[40, 50], [80, 50], [40, 78], [80, 78], [60, 94], [40, 110], [80, 110], [40, 138], [80, 138]],
+  10: [[40, 48], [80, 48], [60, 62], [40, 78], [80, 78], [40, 110], [80, 110], [60, 126], [40, 140], [80, 140]],
 };
 
 const COURT_MARK = {
@@ -100,27 +100,33 @@ const COURT_MARK = {
   14: `<path d="M42 62l2-18 8 8 8-12 8 12 8-8 2 18z"/><path d="M60 40v-8M56 36h8"/>`, // 國王：帶十字的冠
 };
 
+const CORNERS = [[14, 14, 1, 1], [106, 14, -1, 1], [14, 186, 1, -1], [106, 186, -1, -1]]
+  .map(([x, y, sx, sy]) => `<path d="M${x} ${y + 9 * sy}v${-9 * sy}h${9 * sx}M${x + 3 * sx} ${y + 3 * sy}l${4 * sx} ${4 * sy}"/>`)
+  .join('');
+
 function frame() {
   return `<rect x="3" y="3" width="114" height="194" rx="7" class="paper"/>`
+    + `<rect x="8" y="8" width="104" height="184" rx="4" class="wash"/>`
     + `<rect x="8" y="8" width="104" height="184" rx="4"/>`
-    + `<rect x="11" y="11" width="98" height="178" rx="2.5" class="hair"/>`;
+    + `<g class="hair tint">${CORNERS}</g>`;
 }
 
 function label(card) {
-  return `<text x="60" y="180" class="name">${card.zh}</text>`;
+  return `<path d="M34 158h20M66 158h20" class="hair"/><path d="M60 155l3 3-3 3-3-3z" class="fill"/>`
+    + `<text x="60" y="175" class="name">${card.zh}</text>`
+    + `<text x="60" y="185" class="en">${card.en}</text>`;
 }
 
 function majorFace(card) {
   return `${frame()}<text x="60" y="34" class="numeral">${ROMAN[card.number]}</text>`
-    + `<path d="M38 42h44" class="hair"/>${EMBLEMS[card.number]()}`
-    + `<path d="M38 160h44" class="hair"/>${label(card)}`;
+    + `<path d="M44 40h32" class="hair"/><circle cx="60" cy="99" r="46" class="halo"/>${EMBLEMS[card.number]()}${label(card)}`;
 }
 
 function minorFace(card) {
   const glyph = SUIT_GLYPH[card.suit];
   let body = '';
   if (card.court) {
-    body = `${COURT_MARK[card.rank]}<circle cx="60" cy="106" r="30"/><circle cx="60" cy="106" r="26" class="hair"/>`
+    body = `${COURT_MARK[card.rank]}<circle cx="60" cy="106" r="30" class="halo"/><circle cx="60" cy="106" r="30"/><circle cx="60" cy="106" r="26" class="hair"/>`
       + `<g transform="translate(60 106) scale(1.7)">${glyph}</g>`;
   } else {
     const scale = card.rank === 1 ? 2.6 : card.rank <= 3 ? 1.15 : card.rank <= 6 ? 1 : 0.78;
@@ -129,12 +135,12 @@ function minorFace(card) {
       .join('');
   }
   const corner = card.court ? '' : `<text x="20" y="28" class="corner">${card.rank}</text><text x="100" y="28" class="corner">${card.rank}</text>`;
-  return `${frame()}${corner}${body}<path d="M38 160h44" class="hair"/>${label(card)}`;
+  return `${frame()}${corner}${body}${label(card)}`;
 }
 
 export function cardFaceSVG(card) {
   const inner = card.arcana === 'major' ? majorFace(card) : minorFace(card);
-  return `<svg class="card-art" viewBox="0 0 120 200" role="img" aria-label="${card.zh}">${inner}</svg>`;
+  return `<svg class="card-art el-${card.element}" viewBox="0 0 120 200" role="img" aria-label="${card.zh}">${inner}</svg>`;
 }
 
 export function cardBackSVG() {
@@ -146,8 +152,9 @@ export function cardBackSVG() {
   }
   return `<svg class="card-art card-art--back" viewBox="0 0 120 200" aria-hidden="true">`
     + `<rect x="3" y="3" width="114" height="194" rx="7" class="paper"/>`
-    + `<rect x="8" y="8" width="104" height="184" rx="4"/>`
+    + `<rect x="8" y="8" width="104" height="184" rx="4" class="gold"/>`
     + `<g class="hair">${lattice}</g>`
-    + `<circle cx="60" cy="100" r="20" class="paper"/><circle cx="60" cy="100" r="20"/>`
-    + `<g class="fill">${star(60, 100, 14, 8, 0.45)}</g></svg>`;
+    + `<circle cx="60" cy="100" r="24" class="core"/><circle cx="60" cy="100" r="24" class="gold"/>`
+    + `<circle cx="60" cy="100" r="20" class="hair"/>`
+    + `<g class="fill">${star(60, 100, 15, 8, 0.45)}</g></svg>`;
 }
