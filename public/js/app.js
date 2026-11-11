@@ -684,8 +684,15 @@ async function openCard(flip, name, p, tier, total) {
 
 function labelled(items) {
   return items.map((item) => {
-    const row = el('p', 'labelled');
-    row.append(el('b', '', item.label), document.createTextNode(item.text));
+    const row = el('div', 'labelled');
+    row.append(el('b', '', item.label));
+    if (item.list) {
+      const list = el('ol');
+      item.list.forEach((text) => list.append(el('li', '', text)));
+      row.append(list);
+    } else {
+      row.append(document.createTextNode(item.text));
+    }
     return row;
   });
 }
@@ -723,6 +730,7 @@ function renderReading() {
     positions.append(wrap);
   });
   $('between').replaceChildren(...labelled(reading.between));
+  $('conclusion').replaceChildren(...labelled(reading.conclusion));
   $('blessing').textContent = reading.blessing;
 
   $('reading').hidden = false;

@@ -112,75 +112,72 @@ export function analyze(placed) {
 }
 
 const name = (p) => `「${p.card.zh}」`;
-const inTopic = (topic) => (topic.test ? `在${topic.label}上，` : '');
+const inTopic = (topic) => (topic.test ? `在${topic.label}上` : '');
 const orient = (p) => (p.reversed ? '逆位' : '正位');
 const first = (text) => text.split('、')[0];
 
 function overview(a) {
   const out = [];
-  if (a.majors === a.total) out.push('三張全是大阿爾克那，表示這件事牽涉到較長期、較根本的方向，不只是眼前的一個決定。');
-  else if (a.majors === 2) out.push('三張裡有兩張大牌，這件事的背後有比日常事務更大的主題。');
-  else if (a.majors === 1) out.push('三張裡有一張大牌，它是整副牌的重心；另外兩張小牌描述的是它在日常層面的樣子。');
-  else out.push('三張都是小牌，表示這件事屬於日常可以處理的層面，結果主要取決於具體的做法。');
+  if (a.majors === a.total) out.push('三張都是大牌：這件事關係到長期的方向。');
+  else if (a.majors === 2) out.push('兩張大牌：背後有比日常更大的主題。');
+  else if (a.majors === 1) out.push('一張大牌，它是重心；兩張小牌是它在日常裡的樣子。');
+  else out.push('三張都是小牌：屬於日常層面，結果看做法。');
 
   if (a.dominant.length) {
     const el = ELEMENTS[a.dominant[0]];
-    out.push(`${el.zh}元素佔了${a.counts[a.dominant[0]] === 3 ? '全部三張' : '兩張'}，${el.theme}是這副牌談得最多的面向。`);
+    out.push(`${el.zh}元素${a.counts[a.dominant[0]] === 3 ? '三張' : '兩張'}：重點在${el.theme}。`);
   } else {
-    out.push('三張牌分屬三種元素，沒有單一面向主導，事情牽涉的範圍較廣。');
+    out.push('三種元素各一張：牽涉的面向較廣。');
   }
-  if (a.reversed === a.total) out.push('三張都是逆位，力量普遍受阻或轉向內在，外在看起來進展有限，實際上處於調整期。');
-  else if (a.reversed === 2) out.push('逆位佔了兩張，有相當一部分的力量還沒有順利發揮。');
+  if (a.reversed === a.total) out.push('三張都逆位：力量向內，外表看不出進展，實際在調整。');
+  else if (a.reversed === 2) out.push('兩張逆位：有一部分力量還沒發揮。');
   return out.join('');
 }
 
 // 每個位置、每種走勢下，這張牌在題目裡的作用
 const APPLY = {
-  過去: ['這一塊在先前是吃力的，也是你走到今天的背景', '這一塊在先前處於變動，留下了還沒定案的部分', '這一塊在先前是順的，是你現在可以沿用的基礎'],
-  現在: ['這一塊是你此刻比較吃力的地方', '這一塊此刻還在變動，尚未定型', '這一塊此刻是順的，可以當作依靠'],
-  未來: ['照現在的走向，這一塊會遇到阻力，可以提早準備', '這一塊的結果還沒有定，取決於接下來怎麼做', '照現在的走向，這一塊會往順的方向發展'],
-  狀況: ['你目前在這一塊比較吃力', '你目前在這一塊處於變動之中', '你目前在這一塊是站得住的'],
-  癥結: ['事情停住的原因就在這一塊的阻力', '事情停住的原因是這一塊還沒有定下來', '事情停住的原因不是缺少條件，而是這一塊的力量還沒有被用上'],
-  建議: ['牌建議先正視這一塊的難處，再談下一步', '牌建議先在這一塊做調整', '牌建議主動往這一塊用力'],
+  過去: ['先前這一塊吃力，是今天的背景', '先前這一塊沒有定案', '先前這一塊順利，現在可以沿用'],
+  現在: ['此刻這一塊吃力', '此刻這一塊還在變', '此刻這一塊順利，可以依靠'],
+  未來: ['照現在走，這一塊會有阻力，可以先準備', '這一塊的結果未定，看接下來的做法', '照現在走，這一塊會轉順'],
+  狀況: ['你在這一塊吃力', '你在這一塊還在變動', '你在這一塊站得住'],
+  癥結: ['卡住的原因是這一塊的阻力', '卡住的原因是這一塊沒定下來', '卡住的原因是這一塊的力量沒用上'],
+  建議: ['先面對這一塊的難處', '先調整這一塊', '往這一塊用力'],
 };
 
-function cardReading(p, topic, hasQuestion) {
+const actOf = (p) => (p.reversed ? p.card.actRev : p.card.act);
+const sentences = (text) => text.split('。').map((t) => t.trim()).filter(Boolean);
+
+function cardReading(p, topic) {
   const c = p.card;
   const el = ELEMENTS[c.element].zh;
-  const paras = [
-    { label: '牌面', text: c.img },
-    { label: '牌義', text: c.up },
-    p.reversed
-      ? { label: '逆位', text: `這次它是倒著出現的。逆位不是把牌義反過來，而是這張牌的力量受到阻礙、延後，或轉向內在。對${name(p)}來說：${c.rev}` }
-      : { label: '正位', text: `這次是正位，上面的牌義直接成立，重點落在「${p.kw.join('、')}」。` },
-  ];
-  const lead = hasQuestion && topic.test ? `你問的是${topic.label}方面的事。` : hasQuestion ? '' : '你沒有寫下具體的問題，這裡以整體狀態來讀。';
-  paras.push({
-    label: '放在你的問題上',
-    text: `${p.position.role}。${lead}${c.zh}屬${el}元素，${inTopic(topic)}對應的是${topic[c.element]}；配合${orient(p)}的「${p.kw[0]}」來看，${APPLY[p.position.zh][p.v + 1]}。`,
-  });
   return {
     title: `${c.zh}・${orient(p)}`,
     position: p.position.zh,
     keywords: p.kw.join('・'),
-    paras,
+    paras: [
+      { label: '牌面', text: c.img },
+      { label: '牌義', text: c.up },
+      p.reversed
+        ? { label: '逆位', text: `逆位是力量受阻、延後或轉向內在，不是意思相反。${c.rev}` }
+        : { label: '正位', text: `重點是「${p.kw.join('、')}」。` },
+      { label: '放在你的問題上', text: `${p.position.role}。${el}元素${inTopic(topic)}對應${topic[c.element]}。${APPLY[p.position.zh][p.v + 1]}。` },
+      { label: '可以做的事', text: actOf(p) },
+    ],
   };
 }
 
 function storyline(placed, spreadKey) {
-  const chain = placed.map((p) => `${p.position.zh}位的${name(p)}（${p.kw[0]}）`).join(' → ');
+  const chain = placed.map((p) => `${p.position.zh}${name(p)}（${p.kw[0]}）`).join(' → ');
   const [a, b, c] = placed.map((p) => p.v);
   let trend;
   if (spreadKey === 'insight') {
-    const state = ['比較吃力', '還在變動', '站得住'][a + 1];
-    const advice = placed[2].v === 1 ? `建議位給的方向是「${placed[2].kw.join('、')}」` : `建議位提醒先調整「${placed[2].kw.join('、')}」`;
-    trend = `狀況位顯示你目前${state}；癥結位把關鍵指向「${placed[1].kw.join('、')}」；${advice}。三張的邏輯是：先認清現況，再處理癥結，最後照建議行動。`;
-  } else if (c > a) trend = '三張的走勢是逐步轉順：前段較吃力，越往後空間越大。';
-  else if (c < a) trend = '三張的走勢是前段較順、後段出現需要處理的事，重心應該放在後面。';
-  else if (b < a) trend = '起點和終點的狀態相近，中間這一張是關卡；過了它，情況會回到原本的水準。';
-  else if (b > a) trend = '中間這一張是高點，前後相對平淡；現在手上的條件值得把握。';
-  else trend = ['三張都指出阻力，表示目前條件吃緊，適合先處理基礎的問題。', '三張都處在變動中，沒有哪一張已經定型，結果的彈性很大。', '三張的方向一致、都偏順，整體阻力不大。'][a + 1];
-  return `把三張連起來讀：${chain}。${trend}`;
+    trend = `狀況：${['吃力', '變動中', '站得住'][a + 1]}。癥結：${placed[1].kw.join('、')}。建議：${placed[2].kw.join('、')}。`;
+  } else if (c > a) trend = '走勢向上：前段吃力，越後面越順。';
+  else if (c < a) trend = '走勢向下：前段順，後段有事要處理。';
+  else if (b < a) trend = '中間這張是關卡，過了就回到原本的水準。';
+  else if (b > a) trend = '中間這張是高點，把握現在的條件。';
+  else trend = ['三張都有阻力：先處理基礎問題。', '三張都在變動：結果還有很大的彈性。', '三張都順：阻力不大。'][a + 1];
+  return `${chain}。${trend}`;
 }
 
 function pairSentence(placed, pair, topic) {
@@ -188,47 +185,38 @@ function pairSentence(placed, pair, topic) {
   const y = placed[pair.b];
   const ex = x.card.element;
   const ey = y.card.element;
-  const names = `${name(x)}（${ELEMENTS[ex].zh}）與${name(y)}（${ELEMENTS[ey].zh}）`;
-  const px = x.position.zh;
-  const py = y.position.zh;
+  const names = `${name(x)}與${name(y)}`;
   switch (pair.relation) {
     case 'same':
-      return `${names}同屬一個元素，${topic[ex]}這個主題從${px}延續到${py}，是這副牌最集中的訊息。`;
+      return `${names}同屬${ELEMENTS[ex].zh}元素：${topic[ex]}從${x.position.zh}延續到${y.position.zh}，是最集中的訊息。`;
     case 'friendly':
-      return `${names}的元素相生，${px}的狀態會支持${py}：${first(topic[ex])}這一面處理好，${first(topic[ey])}也會跟著順。`;
+      return `${names}（${ELEMENTS[ex].zh}、${ELEMENTS[ey].zh}）相生：${first(topic[ex])}處理好，${first(topic[ey])}跟著順。`;
     case 'hostile':
-      return `${names}的元素相剋，${px}與${py}之間有拉力：${first(topic[ex])}和${first(topic[ey])}的需求不容易同時滿足，需要排出先後。`;
+      return `${names}（${ELEMENTS[ex].zh}、${ELEMENTS[ey].zh}）相剋：${first(topic[ex])}和${first(topic[ey])}難以兼顧，要排先後。`;
     default:
-      return `${names}的元素互不影響，${px}與${py}可以分開處理，不必綁在一起考慮。`;
+      return `${names}（${ELEMENTS[ex].zh}、${ELEMENTS[ey].zh}）互不影響：${x.position.zh}和${y.position.zh}分開處理。`;
   }
 }
 
 function unnoticed(placed, a, topic) {
   const out = [];
   if (a.missing.length) {
-    const names = a.missing.map((m) => ELEMENTS[m].zh).join('、');
-    const maps = a.missing.map((m) => `${ELEMENTS[m].zh}對應的是${topic[m]}`).join('，');
-    out.push(`三張牌都沒有${names}元素。${inTopic(topic)}${maps}；這是這次牌面沒有談到、你可能也較少考慮的部分。`);
+    const maps = a.missing.map((m) => `${ELEMENTS[m].zh}（${topic[m]}）`).join('、');
+    out.push(`缺${maps}。牌沒談到這一塊，你可能也少想了。`);
   }
-  if (a.courts) {
-    out.push(`出現了宮廷牌（${a.courtCards.map(name).join('、')}）。宮廷牌通常指具體的人，這件事裡可能有某個人的態度或做法在起作用，值得把他算進來。`);
-  }
-  for (const r of a.repeatedRanks) out.push(`數字${r}出現了兩次，「${RANK_THEMES[r]}」是被重複強調的主題。`);
-  if (a.reversed >= 2) out.push('逆位佔多數，表示力量多半受阻或向內；外在看起來沒有進展的時候，實際上可能正在醞釀或調整。');
-  if (!out.length) out.push('這副牌的元素分布平均，沒有明顯被略過的面向；可以留意的是三張之間的先後順序，而不是缺了什麼。');
+  if (a.courts) out.push(`有宮廷牌${a.courtCards.map(name).join('、')}：某個人的態度在起作用，把他算進來。`);
+  for (const r of a.repeatedRanks) out.push(`數字${r}出現兩次：主題是「${RANK_THEMES[r]}」。`);
+  if (a.reversed >= 2) out.push('逆位多：看起來沒進展時，可能正在醞釀。');
+  if (!out.length) out.push('元素分布平均，沒有被略過的面向。');
   return out.join('');
 }
 
 function attention(placed, a, topic) {
   const weak = placed.reduce((m, p) => (p.v < m.v ? p : m), placed[0]);
-  if (weak.v === -1) {
-    return `最需要留意的是${weak.position.zh}位的${name(weak)}${orient(weak)}，它指出的阻力是「${weak.kw.join('、')}」。在處理其他事之前，先面對這一點會比較有效。`;
-  }
-  if (weak.v === 0) {
-    return `牌面沒有明顯的阻力。需要留意的是${weak.position.zh}位的${name(weak)}還在變動（${weak.kw.join('、')}），這一塊的結果取決於接下來的做法。`;
-  }
+  if (weak.v === -1) return `阻力在${weak.position.zh}位的${name(weak)}${orient(weak)}：${weak.kw.join('、')}。先處理它。`;
+  if (weak.v === 0) return `沒有明顯的阻力。${weak.position.zh}位的${name(weak)}還在變（${weak.kw.join('、')}），結果看做法。`;
   const gap = a.missing[0];
-  return `三張牌都偏順，沒有需要特別防備的地方。要留意的是不要因為順利而略過${gap ? first(topic[gap]) : '細節'}。`;
+  return `三張都順。別因為順利而略過${gap ? first(topic[gap]) : '細節'}。`;
 }
 
 function judge(placed, spreadKey) {
@@ -236,54 +224,70 @@ function judge(placed, spreadKey) {
   const score = placed.reduce((sum, p, i) => sum + p.v * weights[i], 0);
   const lean = score >= 1 ? 'go' : score <= -1 ? 'hold' : 'mixed';
   const weak = placed.reduce((m, p) => (p.v < m.v ? p : m), placed[0]);
-  const strong = placed.reduce((m, p) => (p.v >= m.v ? p : m), placed[0]);
-  return { lean, weak, strong, now: placed[SPREADS[spreadKey].now], last: placed[placed.length - 1] };
+  const now = placed[SPREADS[spreadKey].now];
+  return { lean, weak, now, last: placed[placed.length - 1], core: weak.v < 1 ? weak : now };
 }
 
-function summary(j, intent, question) {
-  const { lean, weak, strong, now, last } = j;
-  const about = question ? `關於「${question.length > 36 ? `${question.slice(0, 36)}…` : question}」，` : '就整體狀態來看，';
-  const at = (p) => `${p.position.zh}位的${name(p)}`;
-  if (intent === 'how') {
-    return `${about}牌給的做法集中在${at(last)}：${last.kw.join('、')}。${last.reversed ? last.card.rev : last.card.up}`;
-  }
-  if (intent === 'decision') {
-    if (lean === 'go') {
-      const cond = weak.v < 1 ? `前提是把${at(weak)}提到的「${weak.kw[0]}」顧好。` : '三張牌的條件大致到位。';
-      return `${about}牌面傾向可行。支持這個判斷的是${at(strong)}（${strong.kw[0]}）；${cond}`;
-    }
-    if (lean === 'hold') return `${about}牌面顯示目前的條件還沒有齊。較合適的順序是先處理${at(weak)}指出的「${weak.kw[0]}」，之後再回頭做決定。`;
-    return `${about}牌面沒有一面倒。關鍵變數在${at(now)}：等「${now.kw[0]}」的狀況明朗之後再決定，會比較準。`;
-  }
-  if (intent === 'outcome') {
-    if (lean === 'go') return `${about}照目前的走向，結果偏向順利，主要依據是${at(last)}。這是推演而非定論，維持「${strong.kw[0]}」是讓它成真的條件。`;
-    if (lean === 'hold') return `${about}照目前的走向會遇到阻力，來源是${at(weak)}的「${weak.kw[0]}」。這個推演可以改變，從這一點著手最直接。`;
-    return `${about}結果還沒有定。${at(last)}指出「${last.kw[0]}」，表示接下來的做法會直接影響結果。`;
-  }
-  return `${about}目前的重心在${at(now)}（${now.kw.join('、')}），接下來的方向是${at(last)}（${last.kw.join('、')}）。`;
-}
+const ELEMENT_ACTS = {
+  fire: '挑一件和這件事有關的小事，今天做完。',
+  water: '寫下你對這件事真正的感覺，三句就好。',
+  air: '找一個信得過的人，把這件事從頭講一遍。',
+  earth: '替這件事訂一個日期和一個數字。',
+};
 
-// 一句話結論：抽牌當下的狀態，加上牌對問題的回答
-function oneLine(j, intent) {
+// 直接回答提問
+function answer(j, intent) {
   const { lean, weak, now, last } = j;
-  const state = `你抽牌時的狀態對應的是「${now.kw[0]}」。牌的結論：`;
   const w = weak.kw[0];
-  const l = last.kw[0];
-  if (intent === 'how') return `${state}從「${l}」開始做。`;
+  if (intent === 'how') return `從「${last.kw[0]}」著手。`;
   if (intent === 'decision') {
-    if (lean === 'go') {
-      if (weak.v === 1) return `${state}可以往前，條件大致到位。`;
-      return `${state}${weak === now ? '可以往前，同時留意眼前這一點。' : `可以往前，同時把「${w}」顧好。`}`;
-    }
-    if (lean === 'hold') return `${state}${weak === now ? '先把這一點處理好，決定可以晚一點做。' : `先處理「${w}」，決定可以晚一點做。`}`;
-    return `${state}先把「${now.kw[0]}」看清楚，再決定。`;
+    if (lean === 'go') return weak.v < 1 ? `可以做，前提是顧好「${w}」。` : '可以做，條件已經到位。';
+    if (lean === 'hold') return `先不做。「${w}」還沒處理。`;
+    return `還不能定，關鍵在「${now.kw[0]}」這一關。`;
   }
   if (intent === 'outcome') {
-    if (lean === 'go') return `${state}走向偏順，持續「${l}」是讓它成真的條件。`;
-    if (lean === 'hold') return `${state}${weak === now ? '目前有阻力，先把這一點處理好，走向可以改變。' : `目前有阻力，從「${w}」下手可以改變走向。`}`;
-    return `${state}結果未定，關鍵在「${l}」怎麼做。`;
+    if (lean === 'go') return '走向偏順。';
+    if (lean === 'hold') return `目前不順，阻力來自「${w}」。`;
+    return '結果還沒有定。';
   }
-  return `${state}重心在「${now.kw[0]}」，下一步是「${l}」。`;
+  return `重心在「${now.kw[0]}」。`;
+}
+
+// 接下來會怎樣：時間之流看未來位，問題解析看建議做了之後癥結的變化
+function outlook(placed, j, spreadKey) {
+  const { last } = j;
+  if (spreadKey === 'insight') {
+    const crux = placed[1];
+    return `照建議位的${name(last)}去做，癥結「${crux.kw[0]}」會開始鬆動。不做，狀況維持現在的樣子。`;
+  }
+  if (last.v === 1) return `未來位是${name(last)}：${last.kw.join('、')}。維持現在的做法就到得了。`;
+  if (last.v === 0) return `未來位是${name(last)}：${last.kw.join('、')}。還沒定案，看你接下來怎麼做。`;
+  return `未來位是${name(last)}：${last.kw.join('、')}。現在開始準備，可以減輕或避開。`;
+}
+
+function conclusion(placed, a, j, intent, question, spreadKey) {
+  const { core, last } = j;
+  const text = core.reversed ? core.card.rev : core.card.up;
+  const parts = sentences(text);
+  const detail = parts[parts.length - 1];
+  const actions = [actOf(core)];
+  if (last !== core) actions.push(actOf(last));
+  if (a.missing.length) actions.push(ELEMENT_ACTS[a.missing[0]]);
+  else actions.push(actOf(placed.find((p) => p !== core && p !== last) || placed[0]));
+  const quote = question ? `「${question.length > 36 ? `${question.slice(0, 36)}…` : question}」` : '';
+  return [
+    { label: '回答', text: `${quote}${answer(j, intent)}` },
+    { label: '核心', text: `${core.position.zh}位的${name(core)}${orient(core)}（${core.kw.join('、')}）。${detail}。` },
+    { label: '接下來', text: outlook(placed, j, spreadKey) },
+    { label: '可以做的事', list: [...new Set(actions)] },
+  ];
+}
+
+// 一句話：抽牌當下的狀態、牌的回答、第一個動作
+function oneLine(j, intent) {
+  const said = answer(j, intent);
+  const state = said.includes(`「${j.now.kw[0]}」`) ? '' : `你現在的狀態是「${j.now.kw[0]}」。`;
+  return `${state}${said}先做這件事：${actOf(j.core)}`;
 }
 
 // 規則引擎的完整解讀，回傳分段結構
@@ -293,20 +297,18 @@ export function ruleReading(placed, spreadKey, question = '') {
   const topic = TOPICS[detectTopic(q)];
   const intent = detectIntent(q);
   const j = judge(placed, spreadKey);
-
-  const between = [
-    { label: '連起來讀', text: storyline(placed, spreadKey) },
-    { label: '牌與牌的互動', text: a.pairs.map((pair) => pairSentence(placed, pair, topic)).join('') },
-    { label: '你可能沒注意到的', text: unnoticed(placed, a, topic) },
-    { label: '需要留意的', text: attention(placed, a, topic) },
-    { label: '總結', text: summary(j, intent, q) },
-  ];
   return {
     analysis: a,
     topic: topic.label,
     overview: overview(a),
-    positions: placed.map((p) => cardReading(p, topic, Boolean(q))),
-    between,
+    positions: placed.map((p) => cardReading(p, topic)),
+    between: [
+      { label: '連起來讀', text: storyline(placed, spreadKey) },
+      { label: '牌與牌的互動', text: a.pairs.map((pair) => pairSentence(placed, pair, topic)).join('') },
+      { label: '沒注意到的', text: unnoticed(placed, a, topic) },
+      { label: '需要留意的', text: attention(placed, a, topic) },
+    ],
+    conclusion: conclusion(placed, a, j, intent, q, spreadKey),
     blessing: oneLine(j, intent),
   };
 }
