@@ -46,21 +46,43 @@ const lemniscate = (cx, cy, s = 1) => `<path d="M${cx} ${cy}c${-4 * s}${-5 * s}$
 
 // ── 人物與景物的零件 ──
 // 畫風：暮色天空上的鎏金細線；人物是帶垂墜弧線的長袍剪影，臉與手臂受光。
-const head = (x, y, r = 5) => `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(r * 0.84)}" ry="${f(r * 0.98)}" class="skin"/>`;
+const head = (x, y, r = 5) => `<rect x="${f(x - r * 0.3)}" y="${f(y + r * 0.6)}" width="${f(r * 0.6)}" height="${f(r * 0.9)}" class="skin"/>`
+  + `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${f(r * 0.86)}" ry="${f(r)}" class="skin"/>`
+  + `<path d="M${f(x - r * 0.9)} ${f(y + r * 0.25)}a${f(r * 0.9)} ${f(r * 1.06)} 0 0 1 ${f(r * 1.8)} 0q${f(-r * 0.2)} ${f(-r * 0.75)} ${f(-r * 0.9)} ${f(-r * 0.7)}t${f(-r * 0.9)} ${f(r * 0.7)}z" class="deep"/>`
+  + `<path d="M${f(x - r * 0.5)} ${f(y + r * 0.22)}q${f(r * 0.17)} ${f(r * 0.2)} ${f(r * 0.34)} 0M${f(x + r * 0.16)} ${f(y + r * 0.22)}q${f(r * 0.17)} ${f(r * 0.2)} ${f(r * 0.34)} 0" class="hair"/>`;
 
-// 長袍：肩窄、下襬展開，兩側是 S 形的垂墜線，裡面有兩道衣褶
+// 長袍：一整塊實心色塊，上面有斜向的對比飾帶、帶毛點的領口和下襬滾邊
+let ROBE_ID = 0;
+const CONTRAST = { deep: 'soft', soft: 'deep', skin: 'soft' };
 function robe(x, top, w1, w2, h, cls = 'soft') {
   const l = x - w1 / 2; const r = x + w1 / 2; const bl = x - w2 / 2; const br = x + w2 / 2; const bot = top + h;
-  return `<path d="M${f(l)} ${f(top)}C${f(l - 1.5)} ${f(top + h * 0.38)} ${f(bl + 2)} ${f(top + h * 0.7)} ${f(bl - 2.5)} ${f(bot)}`
-    + `Q${f(x)} ${f(bot + 3)} ${f(br + 2.5)} ${f(bot)}C${f(br - 2)} ${f(top + h * 0.7)} ${f(r + 1.5)} ${f(top + h * 0.38)} ${f(r)} ${f(top)}`
-    + `Q${f(x)} ${f(top - 4)} ${f(l)} ${f(top)}z" class="${cls}"/>`
-    + `<path d="M${f(x - w1 * 0.12)} ${f(top + h * 0.3)}Q${f(x - w2 * 0.16)} ${f(top + h * 0.7)} ${f(x - w2 * 0.24)} ${f(bot)}M${f(x + w1 * 0.16)} ${f(top + h * 0.36)}Q${f(x + w2 * 0.2)} ${f(top + h * 0.72)} ${f(x + w2 * 0.2)} ${f(bot + 1)}" class="hair"/>`;
+  const d = `M${f(l)} ${f(top)}C${f(l - 1)} ${f(top + h * 0.4)} ${f(bl + 2)} ${f(top + h * 0.72)} ${f(bl - 1.5)} ${f(bot)}`
+    + `L${f(br + 1.5)} ${f(bot)}C${f(br - 2)} ${f(top + h * 0.72)} ${f(r + 1)} ${f(top + h * 0.4)} ${f(r)} ${f(top)}`
+    + `Q${f(x)} ${f(top - 3.5)} ${f(l)} ${f(top)}z`;
+  const id = `robe-${(ROBE_ID += 1)}`;
+  const alt = CONTRAST[cls] || 'deep';
+  const collar = Math.max(2.4, h * 0.09);
+  let ticks = '';
+  for (let tx = l + 1.5; tx < r - 0.5; tx += 2.4) ticks += `M${f(tx)} ${f(top + collar * 0.25)}v${f(collar * 0.4)}`;
+  return `<clipPath id="${id}"><path d="${d}"/></clipPath><path d="${d}" class="${cls}"/>`
+    + `<g clip-path="url(#${id})">`
+    + `<path d="M${f(l - 2)} ${f(top + h * 0.2)}L${f(br + 4)} ${f(bot - h * 0.22)}v${f(h * 0.16)}L${f(l - 2)} ${f(top + h * 0.36)}z" class="${alt}"/>`
+    + `<path d="M${f(bl - 4)} ${f(bot - Math.max(2.2, h * 0.07))}h${f(w2 + 8)}v6h${f(-w2 - 8)}z" class="${cls === 'skin' ? 'deep' : 'skin'}"/>`
+    + `<path d="M${f(l - 2)} ${f(top - 4)}h${f(w1 + 4)}v${f(collar + 4)}h${f(-w1 - 4)}z" class="skin"/><path d="${ticks}" class="hair"/>`
+    + `</g>`;
 }
-const arm = (x1, y1, x2, y2) => `<path d="M${f(x1)} ${f(y1)}Q${f((x1 + x2) / 2 + (y2 - y1) * 0.12)} ${f((y1 + y2) / 2 + Math.abs(x2 - x1) * 0.14)} ${f(x2)} ${f(y2)}" class="limb"/>`;
+function arm(x1, y1, x2, y2, cls = 'skin') {
+  const dx = x2 - x1; const dy = y2 - y1; const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len; const uy = dy / len; const nx = -uy; const ny = ux;
+  const a = 2.6; const b = 1.7;
+  return `<path d="M${f(x1 + nx * a)} ${f(y1 + ny * a)}L${f(x2 + nx * b)} ${f(y2 + ny * b)}L${f(x2 - nx * b)} ${f(y2 - ny * b)}L${f(x1 - nx * a)} ${f(y1 - ny * a)}z" class="${cls}"/>`
+    + `<path d="M${f(x2 + nx * (b + 0.5) - ux * 1.6)} ${f(y2 + ny * (b + 0.5) - uy * 1.6)}L${f(x2 + nx * (b + 0.5))} ${f(y2 + ny * (b + 0.5))}L${f(x2 - nx * (b + 0.5))} ${f(y2 - ny * (b + 0.5))}L${f(x2 - nx * (b + 0.5) - ux * 1.6)} ${f(y2 - ny * (b + 0.5) - uy * 1.6)}z" class="${CONTRAST[cls] || 'deep'}"/>`
+    + `<circle cx="${f(x2 + ux * 1.5)}" cy="${f(y2 + uy * 1.5)}" r="1.5" class="skin"/>`;
+}
 const crown = (x, y, w) => `<path d="M${f(x - w / 2)} ${f(y)}l${f(w * 0.08)} ${f(-w * 0.6)} ${f(w * 0.2)} ${f(w * 0.32)} ${f(w * 0.22)} ${f(-w * 0.5)} ${f(w * 0.22)} ${f(w * 0.5)} ${f(w * 0.2)} ${f(-w * 0.32)} ${f(w * 0.08)} ${f(w * 0.6)}z" class="gilt"/>`;
 const cloud = (x, y, w) => { const a = w / 6.2; return `<path d="M${f(x)} ${f(y)}a${f(a)} ${f(a)} 0 0 1 ${f(2 * a)} ${f(-a * 0.7)}a${f(a * 1.1)} ${f(a * 1.1)} 0 0 1 ${f(2.2 * a)} ${f(-a * 0.2)}a${f(a)} ${f(a)} 0 0 1 ${f(2 * a)} ${f(a * 0.9)}z" class="mist"/>`; };
-const glow = (x, y, r, o = 1) => `<circle cx="${x}" cy="${y}" r="${r}" fill="url(#glow)" stroke="none" opacity="${o}"/>`;
-const sun = (x, y, r, n = 14) => `${glow(x, y, r * 3.4)}<g class="hair tint">${rays(x, y, r + 2.5, r + 7, n)}</g><circle cx="${x}" cy="${y}" r="${r}" class="skin"/>`;
+const glow = (x, y, r) => `<circle cx="${x}" cy="${y}" r="${f(r * 0.62)}" class="veil"/>`;
+const sun = (x, y, r, n = 14) => `<g>${rays(x, y, r + 2.5, r + 6.5, n)}</g><circle cx="${x}" cy="${y}" r="${r}" class="soft"/>`;
 const tree = (x, y, h) => `<path d="M${x} ${y}v${-h * 0.5}"/><path d="M${x} ${f(y - h)}c${f(h * 0.3)} ${f(h * 0.16)} ${f(h * 0.36)} ${f(h * 0.5)} 0 ${f(h * 0.62)}c${f(-h * 0.36)} ${f(-h * 0.12)} ${f(-h * 0.3)} ${f(-h * 0.46)} 0 ${f(-h * 0.62)}z" class="deep"/>`;
 const pillar = (x, top, bottom, w = 8, cls = 'soft') => `<rect x="${x - w / 2}" y="${top}" width="${w}" height="${bottom - top}" class="${cls}"/><path d="M${x - w / 2 - 2} ${top}h${w + 4}M${x - w / 2 - 2} ${bottom}h${w + 4}M${x - w / 2 - 1} ${top - 3}h${w + 2}"/><path d="M${x - 1.5} ${top}v${bottom - top}M${x + 1.5} ${top}v${bottom - top}" class="hair"/>`;
 const ground = (y) => `<path d="M14 ${y}q23-5 46 0t46-1v${154 - y + 6}h-92z" class="land"/><path d="M14 ${y}q23-5 46 0t46-1" class="tint"/>`;
@@ -69,37 +91,37 @@ const peaks = (y) => `<path d="M14 ${y}l12-20 9 12 10-24 12 22 9-12 12 18 10-16 
 
 // 站立的人：x 是身體中線，foot 是腳底，h 是身高。l / r 是雙手相對肩膀的位移。
 function person(x, foot, h, { cls = 'soft', l, r, hair = false } = {}) {
-  const hr = h * 0.088;
+  const hr = h * 0.115;
   const hy = foot - h + hr;
-  const sy = hy + hr + 2;
-  const w1 = h * 0.17;
-  const w2 = h * 0.38;
+  const sy = hy + hr + 2.4;
+  const w1 = h * 0.24;
+  const w2 = h * 0.46;
   const la = l || [-3, h * 0.3];
   const ra = r || [3, h * 0.3];
   return (hair ? `<path d="M${f(x - hr * 0.9)} ${f(hy - hr * 0.6)}c${f(-hr * 1.6)} ${f(hr * 1.4)} ${f(-hr * 0.4)} ${f(hr * 3.4)} ${f(-hr * 2)} ${f(hr * 5.2)}c${f(hr * 2)} ${f(-hr * 0.4)} ${f(hr * 3)} ${f(-hr * 2)} ${f(hr * 2.9)} ${f(-hr * 4.4)}z" class="deep"/>` : '')
-    + arm(x - w1 / 2 + 1, sy + 2, x - w1 / 2 + la[0], sy + la[1])
-    + arm(x + w1 / 2 - 1, sy + 2, x + w1 / 2 + ra[0], sy + ra[1])
     + robe(x, sy, w1, w2, foot - sy, cls)
+    + arm(x - w1 / 2 + 1.5, sy + 2.5, x - w1 / 2 + la[0], sy + la[1], cls)
+    + arm(x + w1 / 2 - 1.5, sy + 2.5, x + w1 / 2 + ra[0], sy + ra[1], cls)
     + head(x, hy, f(hr));
 }
 
-// 坐著的人：seat 是座面高度。
-function seated(x, seat, h, { cls = 'soft', l, r, skirt = 'soft' } = {}) {
-  const hr = h * 0.088;
+// 坐著的人：seat 是座面高度。上身與裙襬是同一件長袍，膝蓋處往外展開。
+function seated(x, seat, h, { cls = 'soft', l, r } = {}) {
+  const hr = h * 0.115;
   const hy = seat - h * 0.56;
-  const sy = hy + hr + 2;
-  const w1 = h * 0.2;
+  const sy = hy + hr + 2.4;
+  const w1 = h * 0.26;
   const footY = seat + h * 0.42;
   const la = l || [-3, h * 0.26];
   const ra = r || [3, h * 0.26];
-  return robe(x, seat - 3, w1 * 1.5, w1 * 2.5, footY - seat + 3, skirt)
-    + arm(x - w1 / 2 + 1, sy + 2, x - w1 / 2 + la[0], sy + la[1])
-    + arm(x + w1 / 2 - 1, sy + 2, x + w1 / 2 + ra[0], sy + ra[1])
-    + robe(x, sy, w1, w1 * 1.55, seat - sy, cls)
+  const gown = robe(x, seat - 2, w1 * 1.7, w1 * 2.7, footY - seat + 2, cls) + robe(x, sy, w1, w1 * 1.5, seat - sy + 1, cls);
+  return gown
+    + arm(x - w1 / 2 + 1.5, sy + 2.5, x - w1 / 2 + la[0], sy + la[1], cls)
+    + arm(x + w1 / 2 - 1.5, sy + 2.5, x + w1 / 2 + ra[0], sy + ra[1], cls)
     + head(x, hy, f(hr));
 }
 
-const throne = (x, seat, w, top) => `<path d="M${x - w / 2} 154V${top + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V154z" class="soft"/><path d="M${x - w / 2 + 4} 154V${top + w / 2 + 2}a${w / 2 - 4} ${w / 2 - 4} 0 0 1 ${w - 8} 0V154" class="hair"/><g class="fill">${star(x, top + 7, 2.6, 4, 0.4)}</g>`;
+const throne = (x, seat, w, top) => `<path d="M${x - w / 2} 154V${top + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V154z" class="veil"/><path d="M${x - w / 2} 154V${top + w / 2}a${w / 2} ${w / 2} 0 0 1 ${w} 0V154"/><path d="M${x - w / 2 + 4} 154V${top + w / 2 + 2}a${w / 2 - 4} ${w / 2 - 4} 0 0 1 ${w - 8} 0V154" class="hair"/><g class="fill">${star(x, top + 7, 2.6, 4, 0.4)}</g>`;
 
 // 馬：面向右，(x, y) 是身體中心。dir = -1 時面向左。
 function horse(x, y, s = 1, dir = 1, cls = 'skin') {
@@ -292,7 +314,7 @@ const SCENES = [
     + `<path d="M46 132V64h28v68z" class="skin"/><path d="M42 64h36M46 64v-8h6v8M57 64v-8h6v8M68 64v-8h6v8M46 84h10M64 96h10M46 110h8M62 122h12" />`
     + `<path d="M57 74h6v10h-6zM50 96h5v9h-5zM65 104h5v9h-5z" class="deep"/><g class="fill">${[[60, 72], [52, 94], [68, 102]].map(([x, y]) => `<path d="M${x} ${y}c-3-4 0-6 0-9 3 3 3 5 0 9z"/>`).join('')}</g>`
     + `<g transform="rotate(24 78 46)">${crown(78, 50, 18, 'skin')}</g>`
-    + `<path d="M104 32l-16 20h10l-14 18" class="accent" style="stroke:#fdfaf3"/>`
+    + `<path d="M104 32l-16 20h10l-14 18" class="accent"/>`
     + `<g transform="rotate(150 30 102)">${person(30, 116, 28, { cls: 'skin', l: [-8, -6], r: [8, -6] })}</g><g transform="rotate(-150 92 108)">${person(92, 122, 28, { cls: 'skin', l: [-8, -6], r: [8, -6] })}</g>`
     + `<g class="skin">${drop(24, 74)}${drop(34, 62)}${drop(20, 92)}${drop(88, 58)}${drop(98, 90)}${drop(84, 92)}${drop(100, 112)}${drop(22, 124)}</g>`,
   // 17 星星
@@ -408,35 +430,22 @@ function pipScene(card) {
   return FLOURISH + PIP_LAYOUTS[card.rank].map(([x, y]) => obj(card.suit, x, y, scale)).join('');
 }
 
-const CORNERS = [[9, 9, 1, 1], [111, 9, -1, 1], [9, 191, 1, -1], [111, 191, -1, -1]]
-  .map(([x, y, sx, sy]) => `<path d="M${x} ${y + 12 * sy}v${-12 * sy}h${12 * sx}M${x + 2.6 * sx} ${y + 9 * sy}q0 ${-6.4 * sy} ${6.4 * sx} ${-6.4 * sy}"/><circle cx="${x + 2.6 * sx}" cy="${y + 2.6 * sy}" r="0.9" class="fill"/>`)
-  .join('');
+const WINDOW = `<rect x="14" y="30" width="92" height="124" rx="6"`;
 
-const WINDOW = `<rect x="14" y="30" width="92" height="124" rx="9"`;
-
-const SKY = {
-  fire: ['#22123a', '#8a3358', '#f2a877'],
-  water: ['#0b1636', '#1e4f86', '#86cbd9'],
-  air: ['#1e1946', '#6c58a4', '#f3c8d2'],
-  earth: ['#0d231e', '#2c614d', '#d9d29a'],
-};
-
-// 每張牌的星空位置固定，用牌的序號當亂數種子
-function starfield(seed) {
+// 每張牌的點綴位置固定，用牌的序號當亂數種子
+function sprinkle(seed) {
   let n = (seed * 9301 + 49297) % 233280;
   const rnd = () => { n = (n * 9301 + 49297) % 233280; return n / 233280; };
   let out = '';
-  for (let i = 0; i < 22; i += 1) {
-    out += `<circle cx="${f(16 + rnd() * 88)}" cy="${f(32 + rnd() * 74)}" r="${f(0.3 + rnd() * 0.6)}" opacity="${f(0.35 + rnd() * 0.6)}"/>`;
-  }
-  for (let i = 0; i < 3; i += 1) out += star(f(20 + rnd() * 80), f(36 + rnd() * 50), f(1.6 + rnd() * 1.4), 4, 0.3);
+  for (let i = 0; i < 5; i += 1) out += star(f(20 + rnd() * 80), f(36 + rnd() * 44), f(1.4 + rnd() * 1.2), 4, 0.32);
+  for (let i = 0; i < 6; i += 1) out += `<circle cx="${f(18 + rnd() * 84)}" cy="${f(34 + rnd() * 60)}" r="0.7"/>`;
   return `<g class="stars">${out}</g>`;
 }
 
 function label(card) {
-  return `<path d="M24 163h26M70 163h26" class="hair"/><path d="M52 163q4-3.4 8 0 4 3.4 8 0" class="hair"/><g class="fill">${star(60, 163, 2.6, 4, 0.38)}<circle cx="24" cy="163" r="0.9"/><circle cx="96" cy="163" r="0.9"/></g>`
-    + `<text x="60" y="178" class="name">${card.zh}</text>`
-    + `<text x="60" y="188" class="en">${card.en.toUpperCase()}</text>`;
+  return `<path d="M26 162h24M70 162h24"/><path d="M60 158.4l3.6 3.6-3.6 3.6-3.6-3.6z" class="fill"/>`
+    + `<text x="60" y="177" class="name">${card.zh}</text>`
+    + `<text x="60" y="187" class="en">${card.en.toUpperCase()}</text>`;
 }
 
 let DECK_ORDER = 0;
@@ -445,27 +454,22 @@ const SEEDS = new Map();
 export function cardFaceSVG(card) {
   if (!SEEDS.has(card.id)) SEEDS.set(card.id, (DECK_ORDER += 7));
   let scene;
-  let top;
-  const moons = `<path d="M40 17a4 4 0 1 0 0 6 3 3 0 1 1 0-6zM80 17a4 4 0 1 1 0 6 3 3 0 1 0 0-6z" class="fill"/><path d="M22 20h12M86 20h12" class="hair"/>`;
+  let mark;
   if (card.arcana === 'major') {
     scene = SCENES[card.number]();
-    top = `<text x="60" y="24" class="numeral">${ROMAN[card.number]}</text>${moons}`;
+    mark = `<text x="60" y="25" class="numeral">${ROMAN[card.number]}</text>`;
   } else {
-    scene = (card.court || card.rank === 1 ? '' : glow(60, 92, 58, 0.55)) + (card.court ? courtScene(card) : card.rank === 1 ? aceScene(card) : pipScene(card));
-    const mark = card.court ? `<g class="fill">${star(60, 20, 3.6, 4, 0.4)}</g>` : `<text x="60" y="24" class="numeral">${card.rank}</text>`;
-    top = `${mark}${moons}`;
+    scene = card.court ? courtScene(card) : card.rank === 1 ? aceScene(card) : pipScene(card);
+    mark = card.court ? crown(60, 26, 13) : `<text x="60" y="25" class="numeral">${card.rank}</text>`;
   }
-  const [c1, c2, c3] = SKY[card.element];
+  const side = card.arcana === 'major'
+    ? `<path d="M28 21h14M78 21h14"/><path d="M24 17.6l3.4 3.4-3.4 3.4-3.4-3.4zM96 17.6l3.4 3.4-3.4 3.4-3.4-3.4z" class="fill"/>`
+    : `<g transform="translate(26 20) scale(0.5)">${SUIT_GLYPH[card.suit]}</g><g transform="translate(94 20) scale(0.5)">${SUIT_GLYPH[card.suit]}</g>`;
   return `<svg class="card-art el-${card.element}" viewBox="0 0 120 200" role="img" aria-label="${card.zh}">`
-    + `<defs><clipPath id="w-${card.id}">${WINDOW}/></clipPath>`
-    + `<linearGradient id="sky-${card.element}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="0.58" stop-color="${c2}"/><stop offset="1" stop-color="${c3}"/></linearGradient>`
-    + `<radialGradient id="glow"><stop offset="0" stop-color="#fff6dc" stop-opacity="0.85"/><stop offset="0.35" stop-color="#ffe9b0" stop-opacity="0.32"/><stop offset="1" stop-color="#ffe9b0" stop-opacity="0"/></radialGradient>`
-    + `<linearGradient id="haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#150f28" stop-opacity="0"/><stop offset="1" stop-color="#150f28" stop-opacity="0.42"/></linearGradient></defs>`
-    + `<rect x="3" y="3" width="114" height="194" rx="7" class="paper"/><rect x="6" y="6" width="108" height="188" rx="5" class="hair"/>`
-    + `<g class="hair">${CORNERS}</g>${top}`
-    + `${WINDOW} fill="url(#sky-${card.element})" stroke="none"/>`
-    + `<g clip-path="url(#w-${card.id})">${starfield(SEEDS.get(card.id))}${scene}<rect x="14" y="118" width="92" height="36" fill="url(#haze)" stroke="none"/></g>`
-    + `${WINDOW} class="rim"/><rect x="16.5" y="32.5" width="87" height="119" rx="7" class="hair"/>`
+    + `<defs><clipPath id="w-${card.id}">${WINDOW}/></clipPath></defs>`
+    + `<rect x="2" y="2" width="116" height="196" rx="8" class="paper"/><rect x="8" y="8" width="104" height="184" rx="4" class="panel"/>`
+    + `${mark}${side}`
+    + `<g clip-path="url(#w-${card.id})">${WINDOW} class="scene"/>${sprinkle(SEEDS.get(card.id))}<g transform="translate(60 98) scale(${card.arcana === 'major' || card.court ? 1.1 : 1}) translate(-60 -98)">${scene}</g></g>`
     + `${label(card)}</svg>`;
 }
 
