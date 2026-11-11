@@ -1,0 +1,16 @@
+{
+  "name": "paper-tarot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "紙上塔羅：聖三角占卜網站，內建規則引擎，可選用 Claude Fable 即時解牌",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0"
+  }
+}
