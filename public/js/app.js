@@ -43,18 +43,31 @@ function renderFan() {
   state.draws = [];
   state.pile = shuffledPile(state.reversals);
   const back = cardBackSVG();
+  // 桌機三道弧、手機六道，讓每張牌露出來的部分夠手指點
+  const perRow = window.matchMedia('(max-width: 40rem)').matches ? 13 : 26;
+  let row;
   state.pile.forEach((entry, index) => {
+    const col = index % perRow;
+    if (col === 0) {
+      row = el('div', 'fan__row');
+      row.style.setProperty('--n', Math.min(perRow, state.pile.length - index));
+      fan.append(row);
+    }
+    const inRow = Math.min(perRow, state.pile.length - (index - col));
     const btn = el('button', 'fan__card');
     btn.type = 'button';
     btn.innerHTML = back;
+    btn.style.setProperty('--i', index);
+    btn.style.setProperty('--t', inRow > 1 ? ((col / (inRow - 1)) * 2 - 1).toFixed(3) : 0);
     btn.setAttribute('aria-label', `第 ${index + 1} 張牌`);
     btn.addEventListener('click', () => {
+      if (state.draws.length >= spread.positions.length) return;
       btn.disabled = true;
       state.draws.push(entry);
       updatePickHint();
-      if (state.draws.length === spread.positions.length) setTimeout(renderSpread, 350);
+      if (state.draws.length === spread.positions.length) setTimeout(renderSpread, 600);
     });
-    fan.append(btn);
+    row.append(btn);
   });
   updatePickHint();
 }
@@ -63,8 +76,16 @@ function updatePickHint() {
   const spread = SPREADS[state.spreadKey];
   const next = spread.positions[state.draws.length];
   $('pick-hint').textContent = next
-    ? `心裡想著問題，憑感覺挑。現在選的是「${next.zh}」這一張（${state.draws.length + 1}／${spread.positions.length}）。`
+    ? `心裡想著問題，憑感覺挑。現在選的是「${next.zh}」這一張。`
     : '三張都選好了。';
+  const picked = $('picked');
+  picked.replaceChildren();
+  spread.positions.forEach((pos, i) => {
+    const state_ = i < state.draws.length ? ' is-filled' : i === state.draws.length ? ' is-next' : '';
+    const slot = el('div', `picked__slot${state_}`);
+    slot.append(el('i'), document.createTextNode(pos.zh));
+    picked.append(slot);
+  });
 }
 
 // ── 第三步：牌面與解讀 ──
@@ -85,7 +106,7 @@ function renderSpread() {
     inner.append(back, face);
     flip.append(inner);
     const name = el('p', 'slot__name');
-    name.dataset.text = `${p.card.zh}${p.reversed ? '（逆位）' : ''}`;
+    name.append(document.createTextNode(`${p.card.zh}${p.reversed ? '・逆位' : ''}`), el('small', '', p.card.en));
     slot.append(flip, name);
     spreadEl.append(slot);
   }
@@ -100,8 +121,7 @@ function reveal() {
   flips.forEach((flip, i) => {
     setTimeout(() => {
       flip.classList.add('is-open');
-      const name = flip.parentElement.querySelector('.slot__name');
-      name.textContent = name.dataset.text;
+      flip.parentElement.querySelector('.slot__name').classList.add('is-shown');
     }, i * 500);
   });
   setTimeout(renderReading, flips.length * 500 + 500);
@@ -117,18 +137,28 @@ function renderReading() {
   for (const [key, info] of Object.entries(ELEMENTS)) {
     const n = a.counts[key];
     const box = el('div', `element${n >= 2 ? ' is-strong' : ''}${n === 0 ? ' is-absent' : ''}`);
-    box.append(el('b', '', `${info.zh} ${n}`), el('span', '', info.theme.split('、')[0]));
+    box.dataset.el = key;
+    const pips = el('div', 'pips');
+    for (let i = 0; i < a.total; i += 1) pips.append(el('i', i < n ? 'on' : ''));
+    box.append(el('b', '', info.zh), pips, el('span', '', info.theme.split('、')[0]));
     elements.append(box);
   }
   $('overview').textContent = reading.overview;
 
   const positions = $('positions');
   positions.replaceChildren();
-  for (const pos of reading.positions) {
+  reading.positions.forEach((pos, i) => {
+    const p = placed[i];
     const wrap = el('div', 'position');
-    wrap.append(el('h4', '', pos.title), el('p', 'keywords', pos.keywords), el('p', '', pos.text));
+    const thumb = el('div', `position__thumb${p.reversed ? ' is-reversed' : ''}`);
+    thumb.innerHTML = cardFaceSVG(p.card);
+    const body = el('div');
+    const title = el('h4');
+    title.append(el('span', '', p.position.zh), document.createTextNode(`${p.card.zh}${p.reversed ? '・逆位' : '・正位'}`));
+    body.append(title, el('p', 'keywords', pos.keywords), el('p', '', pos.text));
+    wrap.append(thumb, body);
     positions.append(wrap);
-  }
+  });
   $('links').textContent = reading.links;
   $('closing').textContent = reading.closing;
 
@@ -202,7 +232,7 @@ $('btn-again').addEventListener('click', () => {
   $('question').focus();
 });
 
-$('today').textContent = new Intl.DateTimeFormat('zh-TW', { dateStyle: 'full' }).format(new Date());
+$('today').textContent = new Intl.DateTimeFormat('en-GB', { dateStyle: 'long' }).format(new Date()).toUpperCase();
 
 // 純靜態部署時沒有這支 API，網站就只用規則引擎
 fetch('api/status')

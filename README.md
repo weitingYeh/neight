@@ -40,7 +40,11 @@ ANTHROPIC_API_KEY=你的金鑰 npm start
 
 每次 Fable 解牌都會產生 API 費用。伺服器內建簡單的流量限制：同一個 IP 十分鐘內最多問八次。
 
-`public/` 資料夾也可以單獨丟到任何靜態主機（例如 GitHub Pages），那樣就只有規則引擎。
+## 公開網址（GitHub Pages）
+
+`.github/workflows/pages.yml` 會在每次推送到 `master` 時，把 `public/` 部署到 GitHub Pages。第一次使用前，要到 repo 的 Settings → Pages，把 Source 設成 **GitHub Actions**。部署完成後的網址是 `https://weitingyeh.github.io/neight/`。
+
+Pages 是純靜態主機，所以公開網址上只有規則引擎的解讀。要讓公開網站也有 Fable 解牌，得另外把 `server.js` 部署到能跑 Node 的主機，並在那裡設定金鑰。
 
 ## 檔案
 
