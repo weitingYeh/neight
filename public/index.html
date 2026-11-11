@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>紙上塔羅｜聖三角占卜</title>
+  <meta name="description" content="一本紙上的塔羅手帳：寫下問題，抽三張牌，讀整副牌的結構。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="page">
+    <header class="masthead">
+      <p class="masthead__date" id="today"></p>
+      <h1>紙上塔羅</h1>
+      <p class="masthead__sub">寫下一個問題，抽三張牌，慢慢讀。</p>
+    </header>
+
+    <!-- 第一步：提問 -->
+    <section class="step" id="step-ask">
+      <h2><span class="step__no">一</span>想問什麼</h2>
+      <label class="field">
+        <span class="field__label">把問題寫下來。問得越具體，牌越好讀。</span>
+        <textarea id="question" rows="3" maxlength="200" placeholder="例如：我該不該接下這份新工作？"></textarea>
+      </label>
+
+      <fieldset class="choices">
+        <legend>三張牌要怎麼讀</legend>
+        <label class="choice">
+          <input type="radio" name="spread" value="time" checked>
+          <span class="choice__body"><strong>時間之流</strong><em>過去・現在・未來</em><small>想看一件事怎麼走到現在、又會往哪裡去。</small></span>
+        </label>
+        <label class="choice">
+          <input type="radio" name="spread" value="insight">
+          <span class="choice__body"><strong>問題解析</strong><em>狀況・癥結・建議</em><small>想弄清楚卡在哪裡、接下來能怎麼做。</small></span>
+        </label>
+      </fieldset>
+
+      <label class="toggle">
+        <input type="checkbox" id="reversals" checked>
+        <span>使用逆位</span>
+      </label>
+
+      <button class="btn" id="btn-shuffle" type="button">洗牌</button>
+    </section>
+
+    <!-- 第二步：選牌 -->
+    <section class="step" id="step-pick" hidden>
+      <h2><span class="step__no">二</span>選三張牌</h2>
+      <p class="note" id="pick-hint" aria-live="polite"></p>
+      <div class="fan" id="fan"></div>
+      <button class="btn btn--quiet" id="btn-reshuffle" type="button">重新洗牌</button>
+    </section>
+
+    <!-- 第三步：解讀 -->
+    <section class="step" id="step-read" hidden>
+      <h2><span class="step__no">三</span>牌面</h2>
+      <blockquote class="asked" id="asked"></blockquote>
+      <div class="spread" id="spread"></div>
+      <button class="btn" id="btn-reveal" type="button">翻牌</button>
+
+      <div id="reading" hidden>
+        <section class="block">
+          <h3>整副牌的樣子</h3>
+          <div class="elements" id="elements"></div>
+          <p id="overview"></p>
+        </section>
+        <section class="block">
+          <h3>逐張來看</h3>
+          <div id="positions"></div>
+        </section>
+        <section class="block">
+          <h3>牌與牌之間</h3>
+          <p id="links"></p>
+          <p id="closing"></p>
+        </section>
+        <section class="block block--ai" id="ai-block" hidden>
+          <h3>Fable 的解讀</h3>
+          <p class="note" id="ai-status" aria-live="polite"></p>
+          <div class="ai-text" id="ai-text"></div>
+        </section>
+        <p class="disclaimer">塔羅是整理思緒的工具，不是預言。健康、法律與財務上的重大決定，請找專業的人談。</p>
+        <button class="btn btn--quiet" id="btn-again" type="button">再問一個問題</button>
+      </div>
+    </section>
+
+    <footer class="colophon">牌面為原創線稿。解牌依據：整體印象、大小牌比例、元素過與不及、相鄰元素生剋、逆位。</footer>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
